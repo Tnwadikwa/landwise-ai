@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Landwise AI helps you understand what to build, what it may cost, and how to market your property." />
+    <link rel="canonical" href="https://landwiseai.com/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Landwise AI" />
+    <meta property="og:title" content="Landwise AI | Build with confidence" />
+    <meta property="og:description" content="Turn your land into a smarter investment with AI-guided feasibility planning." />
+    <meta property="og:url" content="https://landwiseai.com/" />
+    <title>Landwise AI | Build with confidence</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/">Landwise<span> AI</span></a>
+      <a class="header-link" href="/docs" target="_blank">API documentation</a>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">AI-guided property development</p>
+          <h1>Turn your land into a smarter investment.</h1>
+          <p class="hero-text">Understand what you can build, what it may cost, and how to market it—before you commit.</p>
+          <a class="button button-light" href="#analyzer">Analyze my land <span>↓</span></a>
+        </div>
+        <div class="hero-card">
+          <div class="orb">✦</div>
+          <p>From plot to property</p>
+          <strong>One clear plan.</strong>
+          <div class="mini-progress"><span></span></div>
+          <small>Feasibility · Planning · Selling</small>
+        </div>
+      </section>
+
+      <section class="steps" aria-label="How it works">
+        <article><span>01</span><h3>Tell us about your land</h3><p>Answer a few simple questions about the plot and your goals.</p></article>
+        <article><span>02</span><h3>Get your AI analysis</h3><p>Receive estimated capacity, costs, revenue, and planning notes.</p></article>
+        <article><span>03</span><h3>Move forward confidently</h3><p>Use the generated plan and marketing copy to take your next step.</p></article>
+      </section>
+
+      <section class="workspace" id="analyzer">
+        <div class="section-heading">
+          <p class="eyebrow">Start your project</p>
+          <h2>Analyze your land</h2>
+          <p>No technical knowledge required. These estimates are a starting point for professional review.</p>
+        </div>
+
+        <form id="feasibility-form" class="form-card">
+          <div class="form-progress"><span id="step-label">Project details</span><span>1 of 1</span></div>
+          <div class="form-grid">
+            <label>District<input name="district" required placeholder="e.g. Katampe Extension" /></label>
+            <label>Plot size (sqm)<input name="plot_size_sqm" type="number" min="1" required placeholder="e.g. 1200" /></label>
+            <label>Title type<input name="title_type" required placeholder="e.g. Right of Occupancy" /></label>
+            <label>Cadastral zone<input name="cadastral_zone" required placeholder="e.g. Zone B07" /></label>
+            <label class="wide">What do you want to build?<input name="target_asset_type" required placeholder="e.g. 4-Bedroom Terrace Duplexes" /></label>
+            <label>Acquisition cost (NGN)<input name="acquisition_cost_ngn" type="number" min="0" required placeholder="e.g. 150000000" /></label>
+          </div>
+          <button class="button button-primary" type="submit" id="submit-button">Generate my feasibility plan <span>→</span></button>
+          <p class="form-note">Your information stays in this local demo. Estimates are not legal, planning, or financial advice.</p>
+        </form>
+
+        <div id="error-message" class="message error" hidden></div>
+        <section id="results" class="results" hidden>
+          <div class="results-heading"><div><p class="eyebrow">Your project snapshot</p><h2>A clearer path forward</h2></div><button class="text-button" id="new-analysis">Start over</button></div>
+          <div class="metrics">
+            <article><span>Estimated units</span><strong id="units">—</strong><small>Potential units</small></article>
+            <article><span>Estimated ROI</span><strong id="roi">—</strong><small>Based on current assumptions</small></article>
+            <article><span>Projected revenue</span><strong id="revenue">—</strong><small>Before other project costs</small></article>
+            <article><span>Buildable coverage</span><strong id="coverage">—</strong><small>Maximum ground coverage</small></article>
+          </div>
+          <div class="result-columns">
+            <article class="result-card"><h3>Planning checklist</h3><ul id="notes"></ul></article>
+            <article class="result-card marketing"><p class="eyebrow">AI marketing draft</p><h3>Tell the story of your property</h3><p id="marketing-copy"></p><button class="text-button" id="copy-marketing">Copy marketing copy</button></article>
+          </div>
+          <div class="next-step"><strong>Your next best step</strong><span>Verify your title and confirm current FCDA requirements with qualified professionals before investing.</span></div>
+        </section>
+      </section>
+    </main>
+    <footer><span>Landwise AI</span><span>Estimates made clearer. Decisions made smarter.</span></footer>
+    <script src="/app.js"></script>
+  </body>
+</html>

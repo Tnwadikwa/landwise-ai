@@ -6,5 +6,5 @@ else email.textContent = (await response.json()).email;
 
 document.querySelector('#logout-button').addEventListener('click', async () => {
   await fetch('/api/v1/auth/logout', { method: 'POST' });
-  window.location.href = '/';
+  window.location.href = '/signed-out.html';
 });

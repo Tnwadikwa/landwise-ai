@@ -1,13 +1,31 @@
 from fastapi import APIRouter, Cookie, HTTPException, Response, status
 from pydantic import BaseModel, EmailStr, Field
 
-from app.services.auth import create_session, create_user, delete_session, get_user
+from app.config import settings
+from app.services.auth import (
+    create_password_reset_token,
+    create_session,
+    create_user,
+    delete_session,
+    get_user,
+    reset_password,
+)
+from app.services.email import send_password_reset_email
 
 router = APIRouter(prefix="/api/v1/auth", tags=["authentication"])
 
 
 class Credentials(BaseModel):
     email: EmailStr
+    password: str = Field(..., min_length=8, max_length=128)
+
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+
+class PasswordReset(BaseModel):
+    token: str = Field(..., min_length=20)
     password: str = Field(..., min_length=8, max_length=128)
 
 
@@ -40,3 +58,24 @@ def logout(response: Response, landwise_session: str | None = Cookie(default=Non
     delete_session(landwise_session)
     response.delete_cookie("landwise_session")
     return {"message": "Signed out."}
+
+
+@router.post("/forgot-password")
+def forgot_password(request: PasswordResetRequest) -> dict[str, str]:
+    result = create_password_reset_token(str(request.email).lower())
+    if result:
+        token, email = result
+        reset_url = f"{settings.site_url}/reset-password.html?token={token}"
+        try:
+            send_password_reset_email(email, reset_url)
+        except Exception:
+            # Do not reveal whether the account exists to callers.
+            pass
+    return {"message": "If an account exists for that email, a password reset link is on its way."}
+
+
+@router.post("/reset-password")
+def reset_password_endpoint(request: PasswordReset) -> dict[str, str]:
+    if not reset_password(request.token, request.password):
+        raise HTTPException(status_code=400, detail="This reset link is invalid or has expired.")
+    return {"message": "Password reset successfully. You can now sign in."}

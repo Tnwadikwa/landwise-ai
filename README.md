@@ -32,6 +32,8 @@ The website now includes email/password registration at `/login.html` and a sign
 
 The current SQLite database path is controlled by `DATABASE_PATH`. Render's default filesystem is temporary, so do not use this SQLite mode as the permanent production account store.
 
+Password recovery requires SMTP environment variables: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, and `SMTP_FROM_EMAIL`. Add these securely in Render before using recovery with customers.
+
 ## Deploy the public site
 
 Deploy this project to a host that supports Python web services, such as Render, Railway, Fly.io, or a VPS. Use this start command:

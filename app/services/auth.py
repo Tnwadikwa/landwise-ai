@@ -32,6 +32,13 @@ def init_database() -> None:
                 expires_at TEXT NOT NULL,
                 FOREIGN KEY(user_id) REFERENCES users(id)
             );
+            CREATE TABLE IF NOT EXISTS password_reset_tokens (
+                token_hash TEXT PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                expires_at TEXT NOT NULL,
+                used_at TEXT,
+                FOREIGN KEY(user_id) REFERENCES users(id)
+            );
             """
         )
 
@@ -96,3 +103,43 @@ def delete_session(token: str | None) -> None:
         token_hash = hashlib.sha256(token.encode()).hexdigest()
         with _connection() as connection:
             connection.execute("DELETE FROM sessions WHERE token_hash = ?", (token_hash,))
+
+
+def create_password_reset_token(email: str) -> tuple[str, str] | None:
+    with _connection() as connection:
+        user = connection.execute("SELECT id, email FROM users WHERE email = ?", (email,)).fetchone()
+        if not user:
+            return None
+        token = secrets.token_urlsafe(32)
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+        connection.execute(
+            "INSERT INTO password_reset_tokens (token_hash, user_id, expires_at) VALUES (?, ?, ?)",
+            (token_hash, user["id"], expires_at.isoformat()),
+        )
+        return token, user["email"]
+
+
+def reset_password(token: str, new_password: str) -> bool:
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    with _connection() as connection:
+        record = connection.execute(
+            "SELECT user_id, expires_at, used_at FROM password_reset_tokens WHERE token_hash = ?",
+            (token_hash,),
+        ).fetchone()
+        if (
+            not record
+            or record["used_at"]
+            or datetime.fromisoformat(record["expires_at"]) <= datetime.now(timezone.utc)
+        ):
+            return False
+        connection.execute(
+            "UPDATE users SET password_hash = ? WHERE id = ?",
+            (_hash_password(new_password), record["user_id"]),
+        )
+        connection.execute(
+            "UPDATE password_reset_tokens SET used_at = ? WHERE token_hash = ?",
+            (datetime.now(timezone.utc).isoformat(), token_hash),
+        )
+        connection.execute("DELETE FROM sessions WHERE user_id = ?", (record["user_id"],))
+        return True

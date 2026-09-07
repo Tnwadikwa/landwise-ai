@@ -5,7 +5,9 @@ from fastapi.responses import PlainTextResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from app.routes.feasibility import router as feasibility_router
+from app.routes.auth import router as auth_router
 from app.config import settings
+from app.services.auth import init_database
 
 app = FastAPI(
     title="Landwise AI",
@@ -14,6 +16,8 @@ app = FastAPI(
 )
 
 app.include_router(feasibility_router)
+app.include_router(auth_router)
+init_database()
 
 
 @app.get("/health")

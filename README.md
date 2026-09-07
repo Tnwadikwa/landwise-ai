@@ -26,6 +26,12 @@ uvicorn app.main:app --reload
 
 Open the website at <http://127.0.0.1:8000/> or the interactive API documentation at <http://127.0.0.1:8000/docs>.
 
+## Accounts
+
+The website now includes email/password registration at `/login.html` and a signed-in workspace at `/dashboard.html`. Sessions use an HTTP-only cookie and passwords are stored as PBKDF2 hashes. This is an MVP authentication flow; before onboarding real customers, move users and sessions to managed PostgreSQL, add email verification, password recovery, and two-factor authentication.
+
+The current SQLite database path is controlled by `DATABASE_PATH`. Render's default filesystem is temporary, so do not use this SQLite mode as the permanent production account store.
+
 ## Deploy the public site
 
 Deploy this project to a host that supports Python web services, such as Render, Railway, Fly.io, or a VPS. Use this start command:

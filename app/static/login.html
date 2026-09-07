@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Sign in | Landwise AI</title><link rel="stylesheet" href="/style.css" /></head>
+  <body class="auth-page">
+    <main class="auth-shell">
+      <a class="brand" href="/">Landwise<span> AI</span></a>
+      <section class="auth-panel">
+        <div class="auth-heading"><p class="eyebrow">Your private workspace</p><h1>Welcome back.</h1><p>Sign in to manage projects, reports, and your next property decision.</p></div>
+        <div class="auth-tabs"><button class="active" data-mode="login">Sign in</button><button data-mode="register">Create account</button></div>
+        <form id="auth-form"><label>Email address<input name="email" type="email" autocomplete="email" required placeholder="you@company.com" /></label><label>Password<input name="password" type="password" minlength="8" autocomplete="current-password" required placeholder="At least 8 characters" /></label><button class="button button-primary" type="submit" id="auth-submit">Sign in <span>→</span></button></form>
+        <div id="auth-message" class="message" hidden></div>
+        <p class="auth-footnote">By continuing, you agree to use Landwise AI estimates as decision support, not professional approval.</p>
+      </section>
+    </main>
+    <script src="/auth.js"></script>
+  </body>
+</html>

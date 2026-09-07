@@ -5,6 +5,7 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class Settings:
     site_url: str = os.getenv("SITE_URL", "https://landwiseai.com").rstrip("/")
+    database_path: str = os.getenv("DATABASE_PATH", "/tmp/landwise-ai.db")
     openai_api_key: str | None = os.getenv("OPENAI_API_KEY")
     openai_model: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
     max_coverage_ratio: float = float(os.getenv("MAX_COVERAGE_RATIO", "0.50"))

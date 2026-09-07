@@ -1,7 +1,16 @@
 const form = document.querySelector('#auth-form');
 const message = document.querySelector('#auth-message');
 const submit = document.querySelector('#auth-submit');
+const passwordInput = document.querySelector('[name="password"]');
+const togglePassword = document.querySelector('#toggle-password');
 let mode = 'login';
+
+togglePassword.addEventListener('click', () => {
+  const isHidden = passwordInput.type === 'password';
+  passwordInput.type = isHidden ? 'text' : 'password';
+  togglePassword.textContent = isHidden ? 'Hide' : 'Show';
+  togglePassword.setAttribute('aria-label', `${isHidden ? 'Hide' : 'Show'} password`);
+});
 
 const showMessage = (text, isError = false) => {
   message.textContent = text;

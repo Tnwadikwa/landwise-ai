@@ -16,19 +16,25 @@
   <body>
     <header class="site-header">
       <a class="brand" href="/">Landwise<span> AI</span></a>
-      <a class="header-link" href="/docs" target="_blank">API documentation</a>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="#workflow">How it works</a>
+        <a href="#analyzer">Feasibility</a>
+        <a class="header-link" href="/docs" target="_blank">Sign in <span>↗</span></a>
+      </nav>
     </header>
 
     <main>
       <section class="hero">
         <div class="hero-copy">
-          <p class="eyebrow">AI-guided property development</p>
-          <h1>Turn your land into a smarter investment.</h1>
-          <p class="hero-text">Understand what you can build, what it may cost, and how to market it—before you commit.</p>
+          <p class="eyebrow">AI-guided property intelligence</p>
+          <h1>Make your next property decision with clarity.</h1>
+          <p class="hero-text">From first plot analysis to your first buyer, Landwise AI brings the decisions, assumptions, and next steps into one clear workspace.</p>
           <a class="button button-light" href="#analyzer">Analyze my land <span>↓</span></a>
+          <div class="hero-proof"><span>Built for landowners</span><span>Developers</span><span>Property teams</span></div>
         </div>
         <div class="hero-card">
           <div class="orb">✦</div>
+          <div class="status-line"><span class="status-dot"></span> Project intelligence</div>
           <p>From plot to property</p>
           <strong>One clear plan.</strong>
           <div class="mini-progress"><span></span></div>
@@ -36,21 +42,29 @@
         </div>
       </section>
 
-      <section class="steps" aria-label="How it works">
+      <section class="steps" id="workflow" aria-label="How it works">
         <article><span>01</span><h3>Tell us about your land</h3><p>Answer a few simple questions about the plot and your goals.</p></article>
         <article><span>02</span><h3>Get your AI analysis</h3><p>Receive estimated capacity, costs, revenue, and planning notes.</p></article>
         <article><span>03</span><h3>Move forward confidently</h3><p>Use the generated plan and marketing copy to take your next step.</p></article>
+      </section>
+
+      <section class="workflow-band">
+        <div><p class="eyebrow">A better way to move</p><h2>Keep every decision moving forward.</h2></div>
+        <div class="workflow-track" aria-label="Development workflow">
+          <span class="active">01 <b>Feasibility</b></span><i></i><span>02 <b>Plan</b></span><i></i><span>03 <b>Build</b></span><i></i><span>04 <b>Sell</b></span>
+        </div>
       </section>
 
       <section class="workspace" id="analyzer">
         <div class="section-heading">
           <p class="eyebrow">Start your project</p>
           <h2>Analyze your land</h2>
-          <p>No technical knowledge required. These estimates are a starting point for professional review.</p>
+          <p>No spreadsheets or planning jargon required. Start with the facts you have and get a structured point of view for professional review.</p>
         </div>
 
         <form id="feasibility-form" class="form-card">
-          <div class="form-progress"><span id="step-label">Project details</span><span>1 of 1</span></div>
+          <div class="form-card-heading"><div><span class="form-kicker">New project</span><h3>Tell us about the opportunity</h3></div><span class="secure-note">Private by design</span></div>
+          <div class="form-progress"><span id="step-label">Project details</span><span>Ready to analyze</span></div>
           <div class="form-grid">
             <label>District<input name="district" required placeholder="e.g. Katampe Extension" /></label>
             <label>Plot size (sqm)<input name="plot_size_sqm" type="number" min="1" required placeholder="e.g. 1200" /></label>
@@ -60,12 +74,12 @@
             <label>Acquisition cost (NGN)<input name="acquisition_cost_ngn" type="number" min="0" required placeholder="e.g. 150000000" /></label>
           </div>
           <button class="button button-primary" type="submit" id="submit-button">Generate my feasibility plan <span>→</span></button>
-          <p class="form-note">Your information stays in this local demo. Estimates are not legal, planning, or financial advice.</p>
+          <p class="form-note">Estimates are not legal, planning, or financial advice. Landwise AI highlights what to verify next.</p>
         </form>
 
         <div id="error-message" class="message error" hidden></div>
         <section id="results" class="results" hidden>
-          <div class="results-heading"><div><p class="eyebrow">Your project snapshot</p><h2>A clearer path forward</h2></div><button class="text-button" id="new-analysis">Start over</button></div>
+          <div class="results-heading"><div><p class="eyebrow">Decision brief</p><h2>A clearer path forward</h2><p class="results-subtitle">A working estimate based on your inputs, ready to discuss with your professional team.</p></div><button class="text-button" id="new-analysis">Start over</button></div>
           <div class="metrics">
             <article><span>Estimated units</span><strong id="units">—</strong><small>Potential units</small></article>
             <article><span>Estimated ROI</span><strong id="roi">—</strong><small>Based on current assumptions</small></article>
@@ -73,14 +87,14 @@
             <article><span>Buildable coverage</span><strong id="coverage">—</strong><small>Maximum ground coverage</small></article>
           </div>
           <div class="result-columns">
-            <article class="result-card"><h3>Planning checklist</h3><ul id="notes"></ul></article>
+            <article class="result-card"><div class="card-heading"><h3>Planning checklist</h3><span class="review-badge">Review needed</span></div><ul id="notes"></ul></article>
             <article class="result-card marketing"><p class="eyebrow">AI marketing draft</p><h3>Tell the story of your property</h3><p id="marketing-copy"></p><button class="text-button" id="copy-marketing">Copy marketing copy</button></article>
           </div>
-          <div class="next-step"><strong>Your next best step</strong><span>Verify your title and confirm current FCDA requirements with qualified professionals before investing.</span></div>
+          <div class="next-step"><span class="next-icon">→</span><div><strong>Your next best step</strong><span>Verify your title and confirm current FCDA requirements with qualified professionals before investing.</span></div></div>
         </section>
       </section>
     </main>
-    <footer><span>Landwise AI</span><span>Estimates made clearer. Decisions made smarter.</span></footer>
+    <footer><span>Landwise AI</span><span>Private workspace · Estimates made clearer · Decisions made smarter</span></footer>
     <script src="/app.js"></script>
   </body>
 </html>

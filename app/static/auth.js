@@ -25,11 +25,14 @@ form.addEventListener('submit', async (event) => {
   try {
     const response = await fetch(`/api/v1/auth/${mode}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
     const body = await response.json();
-    if (!response.ok) throw new Error(body.detail?.[0]?.msg || body.detail || 'Something went wrong.');
+    if (!response.ok) {
+      const detail = body.detail?.[0]?.msg || body.detail || 'Something went wrong.';
+      throw new Error(detail.replace('Value error, ', '').replace('value is not a valid email address: ', 'Please enter a valid email address: '));
+    }
     if (mode === 'register') {
-      showMessage('Account created. You can now sign in.');
       mode = 'login';
       document.querySelector('[data-mode="login"]').click();
+      showMessage('Account created. You can now sign in.');
     } else {
       window.location.href = '/dashboard.html';
     }

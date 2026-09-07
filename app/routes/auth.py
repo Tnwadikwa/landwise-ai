@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Cookie, HTTPException, Response, status
 from pydantic import BaseModel, EmailStr, Field
 
@@ -13,6 +15,7 @@ from app.services.auth import (
 from app.services.email import send_password_reset_email
 
 router = APIRouter(prefix="/api/v1/auth", tags=["authentication"])
+logger = logging.getLogger(__name__)
 
 
 class Credentials(BaseModel):
@@ -70,7 +73,7 @@ def forgot_password(request: PasswordResetRequest) -> dict[str, str]:
             send_password_reset_email(email, reset_url)
         except Exception:
             # Do not reveal whether the account exists to callers.
-            pass
+            logger.exception("Password recovery email delivery failed")
     return {"message": "If an account exists for that email, a password reset link is on its way."}
 
 

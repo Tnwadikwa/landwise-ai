@@ -6,6 +6,7 @@ from dataclasses import dataclass
 class Settings:
     site_url: str = os.getenv("SITE_URL", "https://landwiseai.com").rstrip("/")
     database_path: str = os.getenv("DATABASE_PATH", "/tmp/landwise-ai.db")
+    database_url: str | None = os.getenv("DATABASE_URL", "").strip() or None
     smtp_host: str | None = os.getenv("SMTP_HOST", "").strip() or None
     smtp_port: int = int(os.getenv("SMTP_PORT", "587"))
     smtp_username: str | None = os.getenv("SMTP_USERNAME", "").strip() or None

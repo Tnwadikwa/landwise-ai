@@ -30,7 +30,7 @@ Open the website at <http://127.0.0.1:8000/> or the interactive API documentatio
 
 The website now includes email/password registration at `/login.html` and a signed-in workspace at `/dashboard.html`. Sessions use an HTTP-only cookie and passwords are stored as PBKDF2 hashes. This is an MVP authentication flow; before onboarding real customers, move users and sessions to managed PostgreSQL, add email verification, password recovery, and two-factor authentication.
 
-The current SQLite database path is controlled by `DATABASE_PATH`. Render's default filesystem is temporary, so do not use this SQLite mode as the permanent production account store.
+Local development falls back to SQLite through `DATABASE_PATH`. Production must set `DATABASE_URL` to a managed PostgreSQL connection string because Render's default filesystem is temporary. Create a PostgreSQL database with Render, Supabase, Neon, or another provider, then add its private connection URL to the Web Service environment variables. Existing SQLite accounts will need to be recreated or migrated.
 
 Password recovery requires SMTP environment variables: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, and `SMTP_FROM_EMAIL`. Add these securely in Render before using recovery with customers.
 

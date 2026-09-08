@@ -8,6 +8,8 @@ services:
     envVars:
       - key: SITE_URL
         value: https://landwiseai.com
+      - key: DATABASE_URL
+        sync: false
       - key: OPENAI_API_KEY
         sync: false
       - key: OPENAI_MODEL

@@ -2,6 +2,23 @@ const email = document.querySelector('#user-email');
 const projectsList = document.querySelector('#saved-projects-list');
 const projectCount = document.querySelector('#project-count');
 const planBadge = document.querySelector('#plan-badge');
+const inactivityLimit = 60 * 60 * 1000;
+let inactivityTimer;
+
+const signOutForInactivity = async () => {
+  await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'same-origin' });
+  window.location.assign('/login.html?reason=inactive');
+};
+
+const resetInactivityTimer = () => {
+  window.clearTimeout(inactivityTimer);
+  inactivityTimer = window.setTimeout(signOutForInactivity, inactivityLimit);
+};
+
+['click', 'keydown', 'pointermove', 'touchstart', 'scroll'].forEach((eventName) => {
+  window.addEventListener(eventName, resetInactivityTimer, { passive: true });
+});
+resetInactivityTimer();
 
 const showMessage = (element, text, success = false) => {
   element.textContent = text;

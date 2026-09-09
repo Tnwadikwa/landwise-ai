@@ -39,7 +39,7 @@ const showMessage = (element, text, success = false) => {
 const showWorkspaceSection = (sectionId) => {
   const validIds = ['home', ...workspacePanels.map((panel) => panel.id)];
   const targetId = validIds.includes(sectionId) ? sectionId : 'home';
-  document.querySelector('#home').hidden = targetId !== 'home';
+  document.querySelector('#home').classList.toggle('is-hidden', targetId !== 'home');
   workspacePanels.forEach((panel) => {
     panel.classList.toggle('is-hidden', panel.id !== targetId);
   });

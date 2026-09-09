@@ -22,6 +22,8 @@ async def generate_development_feasibility(
     construction_cost, revenue, roi = calculate_financials(plot, zoning.estimated_units)
     marketing_copy = await generate_global_marketing_copy(
         district=plot.district,
+        cadastral_zone=plot.cadastral_zone,
+        title_type=plot.title_type,
         asset_type=plot.target_asset_type,
         units=zoning.estimated_units,
     )

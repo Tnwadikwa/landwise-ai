@@ -4,6 +4,7 @@ from uuid import uuid4
 
 from app.main import app
 from app.services.feasibility import analyze_fcda_zoning
+from app.services.marketing import fallback_marketing_copy
 
 client = TestClient(app)
 
@@ -31,6 +32,22 @@ def test_zoning_calculation() -> None:
     assert result.max_allowable_coverage_sqm == 600
     assert result.estimated_units == 4
     assert result.compliance_notes
+
+
+def test_marketing_fallback_uses_entered_location_and_title() -> None:
+    copy = fallback_marketing_copy(
+        district="East Legon",
+        cadastral_zone="LG-04",
+        title_type="Leasehold",
+        asset_type="Townhouses",
+        units=3,
+    )
+
+    assert "East Legon" in copy
+    assert "LG-04" in copy
+    assert "Leasehold" in copy
+    assert "Townhouses" in copy
+    assert "Abuja" not in copy
 
 
 def test_feasibility_endpoint_requires_account() -> None:

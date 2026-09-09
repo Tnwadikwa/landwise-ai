@@ -68,3 +68,27 @@ def test_missing_required_field_is_rejected() -> None:
     invalid_plot = {key: value for key, value in VALID_PLOT.items() if key != "district"}
     response = client.post("/api/v1/feasibility/generate", json=invalid_plot)
     assert response.status_code == 422
+
+
+def test_signed_in_user_can_save_list_download_and_delete_project() -> None:
+    client.cookies.clear()
+    email = f"project-{uuid4()}@example.com"
+    assert client.post(
+        "/api/v1/auth/register",
+        json={"email": email, "password": "test-password-123"},
+    ).status_code == 201
+    report = client.post("/api/v1/feasibility/generate", json=VALID_PLOT).json()
+
+    saved = client.post(
+        "/api/v1/projects",
+        json={"name": "Katampe Opportunity", "plot": VALID_PLOT, "report": report},
+    )
+    assert saved.status_code == 201
+    project_id = saved.json()["id"]
+    assert client.get("/api/v1/projects").json()[0]["name"] == "Katampe Opportunity"
+    pdf = client.get(f"/api/v1/projects/{project_id}/report.pdf")
+    assert pdf.status_code == 200
+    assert pdf.headers["content-type"] == "application/pdf"
+    assert pdf.content.startswith(b"%PDF")
+    assert client.delete(f"/api/v1/projects/{project_id}").status_code == 204
+    assert client.get("/api/v1/projects").json() == []

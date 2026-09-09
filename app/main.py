@@ -7,6 +7,7 @@ from sqlalchemy import text
 
 from app.routes.feasibility import router as feasibility_router
 from app.routes.auth import router as auth_router
+from app.routes.projects import router as projects_router
 from app.config import settings
 from app.services.auth import database_diagnostics, engine, init_database
 
@@ -18,6 +19,7 @@ app = FastAPI(
 
 app.include_router(feasibility_router)
 app.include_router(auth_router)
+app.include_router(projects_router)
 init_database()
 
 

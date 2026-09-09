@@ -142,6 +142,12 @@ def get_user(token: str | None) -> dict[str, str] | None:
         return {"email": user.email, "created_at": user.created_at.isoformat()}
 
 
+def get_user_id(email: str) -> int | None:
+    with SessionLocal() as database:
+        user = database.scalar(select(User).where(User.email == email))
+        return user.id if user else None
+
+
 def delete_session(token: str | None) -> None:
     if token:
         with SessionLocal() as database:

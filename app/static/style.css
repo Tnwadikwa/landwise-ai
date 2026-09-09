@@ -1,3 +1,8 @@
+.saved-projects-list { display: grid; gap: 10px; margin-top: 25px; }
+.saved-project { align-items: center; background: white; border: 1px solid var(--line); border-radius: 14px; display: flex; justify-content: space-between; padding: 18px 22px; }
+.saved-project strong, .saved-project span { display: block; }
+.saved-project span { color: var(--muted); font-size: .8rem; margin-top: 5px; }
+.saved-project-actions, .result-actions { align-items: center; display: flex; gap: 18px; }
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 :root { --ink: #14211b; --muted: #68736c; --paper: #f8f8f3; --green: #1f5d45; --lime: #d9f06a; --line: #dfe5dc; }
 * { box-sizing: border-box; }

@@ -1,5 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
+from uuid import uuid4
 
 from app.main import app
 from app.services.feasibility import analyze_fcda_zoning
@@ -32,7 +33,22 @@ def test_zoning_calculation() -> None:
     assert result.compliance_notes
 
 
-def test_feasibility_endpoint_without_api_key() -> None:
+def test_feasibility_endpoint_requires_account() -> None:
+    client.cookies.clear()
+    response = client.post("/api/v1/feasibility/generate", json=VALID_PLOT)
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Sign in to analyze your land."
+
+
+def test_feasibility_endpoint_for_signed_in_user() -> None:
+    client.cookies.clear()
+    email = f"feasibility-{uuid4()}@example.com"
+    registered = client.post(
+        "/api/v1/auth/register",
+        json={"email": email, "password": "test-password-123"},
+    )
+    assert registered.status_code == 201
+
     response = client.post("/api/v1/feasibility/generate", json=VALID_PLOT)
     assert response.status_code == 200
     body = response.json()

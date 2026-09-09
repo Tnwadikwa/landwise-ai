@@ -1,8 +1,11 @@
+.saved-project-actions { flex-wrap: wrap; }
+@media (max-width: 720px) { .settings-grid, .premium-grid { grid-template-columns: 1fr; }.saved-project { align-items: flex-start; flex-direction: column; gap: 14px; } }
 .saved-projects-list { display: grid; gap: 10px; margin-top: 25px; }
 .saved-project { align-items: center; background: white; border: 1px solid var(--line); border-radius: 14px; display: flex; justify-content: space-between; padding: 18px 22px; }
 .saved-project strong, .saved-project span { display: block; }
 .saved-project span { color: var(--muted); font-size: .8rem; margin-top: 5px; }
 .saved-project-actions, .result-actions { align-items: center; display: flex; gap: 18px; }
+.settings-grid, .premium-grid { display: grid; gap: 16px; grid-template-columns: repeat(2, 1fr); margin-top: 25px; }.settings-card, .premium-card { background: white; border: 1px solid var(--line); border-radius: 16px; padding: 24px; }.settings-card h3, .premium-card h3 { margin-top: 0; }.settings-card label { color: var(--muted); display: flex; flex-direction: column; font-size: .85rem; font-weight: 700; gap: 8px; margin-bottom: 15px; }.settings-card .button { margin-top: 0; }.danger-button { background: none; border: 0; color: #a13e2d; cursor: pointer; display: block; font: inherit; font-weight: 700; margin-top: 18px; padding: 0; }.plan-badge, .lock-mark { background: #fff5df; border-radius: 99px; color: #91621f; font-size: .72rem; font-weight: 800; padding: 6px 10px; }.premium-grid { grid-template-columns: repeat(3, 1fr); }.premium-card { min-height: 220px; position: relative; }.premium-card p, .settings-card p { color: var(--muted); }.premium-card .lock-mark { display: inline-block; }.premium-card button:disabled { color: var(--muted); cursor: not-allowed; }
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 :root { --ink: #14211b; --muted: #68736c; --paper: #f8f8f3; --green: #1f5d45; --lime: #d9f06a; --line: #dfe5dc; }
 * { box-sizing: border-box; }

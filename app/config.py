@@ -12,6 +12,9 @@ class Settings:
     smtp_username: str | None = os.getenv("SMTP_USERNAME", "").strip() or None
     smtp_password: str | None = os.getenv("SMTP_PASSWORD", "").strip() or None
     smtp_from_email: str | None = os.getenv("SMTP_FROM_EMAIL", "").strip() or None
+    paid_account_emails: tuple[str, ...] = tuple(
+        email.strip().lower() for email in os.getenv("PAID_ACCOUNT_EMAILS", "").split(",") if email.strip()
+    )
     openai_api_key: str | None = os.getenv("OPENAI_API_KEY")
     openai_model: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
     max_coverage_ratio: float = float(os.getenv("MAX_COVERAGE_RATIO", "0.50"))

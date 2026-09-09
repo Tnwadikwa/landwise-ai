@@ -139,7 +139,8 @@ def get_user(token: str | None) -> dict[str, str] | None:
         user = database.get(User, session.user_id)
         if not user:
             return None
-        return {"email": user.email, "created_at": user.created_at.isoformat()}
+        plan = "paid" if user.email in settings.paid_account_emails else "free"
+        return {"id": str(user.id), "email": user.email, "created_at": user.created_at.isoformat(), "plan": plan}
 
 
 def get_user_id(email: str) -> int | None:
@@ -157,6 +158,35 @@ def delete_session(token: str | None) -> None:
                 )
             )
             database.commit()
+
+
+def delete_all_sessions(user_id: int) -> None:
+    with SessionLocal() as database:
+        database.execute(delete(UserSession).where(UserSession.user_id == user_id))
+        database.commit()
+
+
+def change_password(user_id: int, current_password: str, new_password: str) -> bool:
+    with SessionLocal() as database:
+        user = database.get(User, user_id)
+        if not user or not _verify_password(current_password, user.password_hash):
+            return False
+        user.password_hash = _hash_password(new_password)
+        database.execute(delete(UserSession).where(UserSession.user_id == user_id))
+        database.commit()
+        return True
+
+
+def delete_user_account(user_id: int) -> bool:
+    with SessionLocal() as database:
+        user = database.get(User, user_id)
+        if not user:
+            return False
+        database.execute(text("DELETE FROM projects WHERE user_id = :user_id"), {"user_id": user_id})
+        database.execute(delete(UserSession).where(UserSession.user_id == user_id))
+        database.delete(user)
+        database.commit()
+        return True
 
 
 def create_password_reset_token(email: str) -> tuple[str, str] | None:

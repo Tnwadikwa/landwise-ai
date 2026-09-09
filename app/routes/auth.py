@@ -8,7 +8,11 @@ from app.services.auth import (
     create_password_reset_token,
     create_session,
     create_user,
+    change_password,
+    delete_all_sessions,
+    delete_user_account,
     delete_session,
+    get_user_id,
     get_user,
     login_failure_reason,
     reset_password,
@@ -30,6 +34,15 @@ class PasswordResetRequest(BaseModel):
 
 class PasswordReset(BaseModel):
     token: str = Field(..., min_length=20)
+    password: str = Field(..., min_length=8, max_length=128)
+
+
+class PasswordChange(BaseModel):
+    current_password: str = Field(..., min_length=8, max_length=128)
+    new_password: str = Field(..., min_length=8, max_length=128)
+
+
+class AccountDelete(BaseModel):
     password: str = Field(..., min_length=8, max_length=128)
 
 
@@ -66,6 +79,49 @@ def logout(response: Response, landwise_session: str | None = Cookie(default=Non
     delete_session(landwise_session)
     response.delete_cookie("landwise_session")
     return {"message": "Signed out."}
+
+
+def _require_user_id(session: str | None) -> int:
+    user = get_user(session)
+    user_id = get_user_id(user["email"]) if user else None
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Sign in required.")
+    return user_id
+
+
+@router.post("/change-password")
+def change_password_endpoint(
+    request: PasswordChange,
+    response: Response,
+    landwise_session: str | None = Cookie(default=None),
+) -> dict[str, str]:
+    user_id = _require_user_id(landwise_session)
+    if not change_password(user_id, request.current_password, request.new_password):
+        raise HTTPException(status_code=400, detail="Current password is incorrect.")
+    response.delete_cookie("landwise_session")
+    return {"message": "Password changed. Please sign in again."}
+
+
+@router.post("/logout-all")
+def logout_all(response: Response, landwise_session: str | None = Cookie(default=None)) -> dict[str, str]:
+    user_id = _require_user_id(landwise_session)
+    delete_all_sessions(user_id)
+    response.delete_cookie("landwise_session")
+    return {"message": "All sessions have been signed out."}
+
+
+@router.delete("/account")
+def delete_account(
+    request: AccountDelete,
+    response: Response,
+    landwise_session: str | None = Cookie(default=None),
+) -> dict[str, str]:
+    user_id = _require_user_id(landwise_session)
+    if not change_password(user_id, request.password, request.password):
+        raise HTTPException(status_code=400, detail="Password is incorrect.")
+    delete_user_account(user_id)
+    response.delete_cookie("landwise_session")
+    return {"message": "Your account and saved projects have been deleted."}
 
 
 @router.post("/forgot-password")

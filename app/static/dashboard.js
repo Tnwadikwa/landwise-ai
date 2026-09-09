@@ -1,6 +1,13 @@
 const email = document.querySelector('#user-email');
 const projectsList = document.querySelector('#saved-projects-list');
 const projectCount = document.querySelector('#project-count');
+const planBadge = document.querySelector('#plan-badge');
+
+const showMessage = (element, text, success = false) => {
+  element.textContent = text;
+  element.className = `message ${success ? 'success' : 'error'}`;
+  element.hidden = false;
+};
 
 const renderProjects = (projects) => {
   projectCount.textContent = projects.length;
@@ -56,7 +63,9 @@ window.addEventListener('projects-updated', loadProjects);
     return;
   }
 
-  email.textContent = (await response.json()).email;
+  const account = await response.json();
+  email.textContent = account.email;
+  planBadge.textContent = account.plan === 'paid' ? 'Paid plan' : 'Free plan';
   loadProjects();
   document.querySelector('#logout-button').addEventListener('click', async (event) => {
     const button = event.currentTarget;
@@ -70,4 +79,30 @@ window.addEventListener('projects-updated', loadProjects);
   });
 })().catch(() => {
   window.location.href = '/login.html';
+});
+
+document.querySelector('#change-password-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const message = document.querySelector('#password-message');
+  const response = await fetch('/api/v1/auth/change-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.fromEntries(new FormData(event.currentTarget))) });
+  const body = await response.json();
+  if (!response.ok) return showMessage(message, body.detail || 'Password change failed.');
+  showMessage(message, body.message, true);
+  setTimeout(() => { window.location.href = '/login.html'; }, 1200);
+});
+
+document.querySelector('#logout-all').addEventListener('click', async () => {
+  const response = await fetch('/api/v1/auth/logout-all', { method: 'POST' });
+  const body = await response.json();
+  if (response.ok) window.location.href = '/login.html';
+  else showMessage(document.querySelector('#account-message'), body.detail || 'Could not sign out all devices.');
+});
+
+document.querySelector('#delete-account').addEventListener('click', async () => {
+  const password = window.prompt('Enter your password to permanently delete your account and saved projects.');
+  if (!password) return;
+  const response = await fetch('/api/v1/auth/account', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password }) });
+  const body = await response.json();
+  if (response.ok) window.location.href = '/signed-out.html';
+  else showMessage(document.querySelector('#account-message'), body.detail || 'Account deletion failed.');
 });

@@ -24,3 +24,5 @@ services:
         sync: false
       - key: SMTP_FROM_EMAIL
         sync: false
+      - key: PAID_ACCOUNT_EMAILS
+        sync: false

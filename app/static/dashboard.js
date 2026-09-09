@@ -2,6 +2,9 @@ const email = document.querySelector('#user-email');
 const projectsList = document.querySelector('#saved-projects-list');
 const projectCount = document.querySelector('#project-count');
 const planBadge = document.querySelector('#plan-badge');
+const workspaceTabs = [...document.querySelectorAll('.workspace-tabs a')];
+const workspacePanels = [...document.querySelectorAll('.workspace-panel')];
+const workspaceLinks = [...document.querySelectorAll('a[href^="#"]')];
 const inactivityLimit = 60 * 60 * 1000;
 let inactivityTimer;
 
@@ -25,6 +28,31 @@ const showMessage = (element, text, success = false) => {
   element.className = `message ${success ? 'success' : 'error'}`;
   element.hidden = false;
 };
+
+const showWorkspaceSection = (sectionId) => {
+  const validIds = ['home', ...workspacePanels.map((panel) => panel.id)];
+  const targetId = validIds.includes(sectionId) ? sectionId : 'home';
+  document.querySelector('#home').hidden = targetId !== 'home';
+  workspacePanels.forEach((panel) => {
+    panel.classList.toggle('is-hidden', panel.id !== targetId);
+  });
+  workspaceTabs.forEach((tab) => {
+    tab.classList.toggle('active', tab.getAttribute('href') === `#${targetId}`);
+  });
+};
+
+workspaceLinks.forEach((link) => {
+  link.addEventListener('click', (event) => {
+    const targetId = link.getAttribute('href').slice(1);
+    if (!document.getElementById(targetId)) return;
+    event.preventDefault();
+    window.history.replaceState(null, '', `#${targetId}`);
+    showWorkspaceSection(targetId);
+  });
+});
+
+window.addEventListener('hashchange', () => showWorkspaceSection(window.location.hash.slice(1)));
+showWorkspaceSection(window.location.hash.slice(1) || 'home');
 
 const renderProjects = (projects) => {
   projectCount.textContent = projects.length;

@@ -25,7 +25,13 @@ init_database()
 def health_check() -> dict[str, str]:
     with engine.connect() as connection:
         connection.execute(text("SELECT 1"))
-    return {"status": "ok", **database_diagnostics()}
+    return {
+        "status": "ok",
+        **database_diagnostics(),
+        "smtp": "configured" if all(
+            (settings.smtp_host, settings.smtp_username, settings.smtp_password, settings.smtp_from_email)
+        ) else "incomplete",
+    }
 
 
 @app.get("/robots.txt", response_class=PlainTextResponse, include_in_schema=False)

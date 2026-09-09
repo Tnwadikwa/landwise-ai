@@ -22,6 +22,7 @@ def test_health_check() -> None:
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
     assert response.json()["backend"] in {"sqlite", "postgresql"}
+    assert response.json()["smtp"] in {"configured", "incomplete"}
 
 
 def test_zoning_calculation() -> None:

@@ -1,5 +1,6 @@
 .saved-project-actions { flex-wrap: wrap; }
 .workspace-panel.is-hidden { display: none; }
+.workspace-status, .plan-badge { display: none; }
 .workspace-header { align-items: center; background: white; border-bottom: 1px solid var(--line); display: grid; gap: 22px; grid-template-columns: auto 1fr auto; padding: 16px max(28px, calc((100% - 1320px) / 2)); position: sticky; top: 0; z-index: 5; }
 .workspace-tabs { align-items: center; display: flex; gap: 4px; justify-content: center; }.workspace-tabs a { border-radius: 8px; color: var(--muted); font-size: .78rem; font-weight: 700; padding: 10px 12px; text-decoration: none; white-space: nowrap; }.workspace-tabs a:hover, .workspace-tabs a.active { background: var(--soft-green); color: var(--green); }
 .workspace-hero { align-items: end; background: var(--green); border-radius: 0 0 22px 22px; color: white; display: flex; justify-content: space-between; margin: 0 -28px 26px; padding: 54px max(28px, calc((100% - 1124px) / 2)); }.workspace-hero h1 { font-size: clamp(2.5rem, 5vw, 4.8rem); margin-bottom: 14px; }.workspace-hero p:not(.eyebrow) { color: #d6e0d8; margin: 0; max-width: 560px; }

@@ -2,6 +2,11 @@ const email = document.querySelector('#user-email');
 const projectsList = document.querySelector('#saved-projects-list');
 const projectCount = document.querySelector('#project-count');
 const planBadge = document.querySelector('#plan-badge');
+document.querySelector('.workspace-tabs a[href="#premium"]').textContent = 'Landwise AI Plus';
+document.querySelector('#premium .eyebrow').textContent = '04 · Landwise AI Plus';
+document.querySelectorAll('.premium-card button').forEach((button) => {
+  button.textContent = 'Available on Landwise AI Plus';
+});
 const workspaceTabs = [...document.querySelectorAll('.workspace-tabs a')];
 const workspacePanels = [...document.querySelectorAll('.workspace-panel')];
 const workspaceLinks = [...document.querySelectorAll('a[href^="#"]')];

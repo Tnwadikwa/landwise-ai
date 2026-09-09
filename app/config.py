@@ -15,6 +15,7 @@ class Settings:
     paid_account_emails: tuple[str, ...] = tuple(
         email.strip().lower() for email in os.getenv("PAID_ACCOUNT_EMAILS", "").split(",") if email.strip()
     )
+    location_validation_enabled: bool = os.getenv("LOCATION_VALIDATION_ENABLED", "false").lower() == "true"
     openai_api_key: str | None = os.getenv("OPENAI_API_KEY")
     openai_model: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
     max_coverage_ratio: float = float(os.getenv("MAX_COVERAGE_RATIO", "0.50"))

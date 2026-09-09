@@ -12,6 +12,7 @@ class PlotDetails(BaseModel):
 
 class FeasibilityReport(BaseModel):
     district: str
+    verified_location: str | None = None
     max_allowable_coverage_sqm: float
     estimated_units: int
     construction_cost_ngn: float

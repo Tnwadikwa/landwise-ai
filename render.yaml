@@ -26,3 +26,5 @@ services:
         sync: false
       - key: PAID_ACCOUNT_EMAILS
         sync: false
+      - key: LOCATION_VALIDATION_ENABLED
+        value: "true"

@@ -4,6 +4,7 @@ from uuid import uuid4
 
 from app.main import app
 from app.services.feasibility import analyze_fcda_zoning
+from app.services.location import VerifiedLocation
 from app.services.marketing import fallback_marketing_copy
 
 client = TestClient(app)
@@ -48,6 +49,18 @@ def test_marketing_fallback_uses_entered_location_and_title() -> None:
     assert "Leasehold" in copy
     assert "Townhouses" in copy
     assert "Abuja" not in copy
+
+
+def test_verified_location_model_preserves_geocoder_data() -> None:
+    location = VerifiedLocation(
+        display_name="East Legon, Accra, Ghana",
+        latitude=5.6037,
+        longitude=-0.1870,
+    )
+
+    assert location.display_name == "East Legon, Accra, Ghana"
+    assert location.latitude == pytest.approx(5.6037)
+    assert location.longitude == pytest.approx(-0.1870)
 
 
 def test_feasibility_endpoint_requires_account() -> None:

@@ -33,15 +33,18 @@ class PasswordReset(BaseModel):
 
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
-def register(credentials: Credentials) -> dict[str, str]:
-    if not create_user(str(credentials.email).lower(), credentials.password):
+def register(credentials: Credentials, response: Response) -> dict[str, str]:
+    email = str(credentials.email).strip().lower()
+    if not create_user(email, credentials.password):
         raise HTTPException(status_code=409, detail="An account with this email already exists.")
-    return {"message": "Account created. You can now sign in."}
+    token = create_session(email, credentials.password)
+    response.set_cookie("landwise_session", token, httponly=True, samesite="lax", max_age=604800)
+    return {"message": "Account created. You are now signed in."}
 
 
 @router.post("/login")
 def login(credentials: Credentials, response: Response) -> dict[str, str]:
-    token = create_session(str(credentials.email).lower(), credentials.password)
+    token = create_session(str(credentials.email).strip().lower(), credentials.password)
     if not token:
         raise HTTPException(status_code=401, detail="Email or password is incorrect.")
     response.set_cookie("landwise_session", token, httponly=True, samesite="lax", max_age=604800)

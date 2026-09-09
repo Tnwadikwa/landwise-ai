@@ -39,9 +39,7 @@ form.addEventListener('submit', async (event) => {
       throw new Error(detail.replace('Value error, ', '').replace('value is not a valid email address: ', 'Please enter a valid email address: '));
     }
     if (mode === 'register') {
-      mode = 'login';
-      document.querySelector('[data-mode="login"]').click();
-      showMessage('Account created. You can now sign in.');
+      window.location.href = '/dashboard.html';
     } else {
       window.location.href = '/dashboard.html';
     }

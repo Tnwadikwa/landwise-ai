@@ -2,6 +2,8 @@ const email = document.querySelector('#user-email');
 const projectsList = document.querySelector('#saved-projects-list');
 const projectCount = document.querySelector('#project-count');
 const planBadge = document.querySelector('#plan-badge');
+document.querySelector('.workspace-status')?.remove();
+document.querySelectorAll('.plan-badge').forEach((badge) => badge.remove());
 document.querySelector('.workspace-tabs a[href="#premium"]').textContent = 'Landwise AI Plus';
 document.querySelector('#premium .eyebrow').textContent = '04 · Landwise AI Plus';
 document.querySelectorAll('.premium-card button').forEach((button) => {
@@ -115,7 +117,6 @@ window.addEventListener('projects-updated', loadProjects);
 
   const account = await response.json();
   email.textContent = account.email;
-  planBadge.textContent = account.plan === 'paid' ? 'Paid plan' : 'Free plan';
   loadProjects();
   document.querySelector('#logout-button').addEventListener('click', async (event) => {
     const button = event.currentTarget;

@@ -76,9 +76,12 @@ def forgot_password(request: PasswordResetRequest) -> dict[str, str]:
         reset_url = f"{settings.site_url}/reset-password.html?token={token}"
         try:
             send_password_reset_email(email, reset_url)
-        except Exception:
-            # Do not reveal whether the account exists to callers.
+        except Exception as error:
             logger.exception("Password recovery email delivery failed")
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="We could not send the recovery email. Please try again later.",
+            ) from error
     return {"message": "If an account exists for that email, a password reset link is on its way."}
 
 

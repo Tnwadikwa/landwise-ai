@@ -20,7 +20,8 @@ VALID_PLOT = {
 def test_health_check() -> None:
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+    assert response.json()["status"] == "ok"
+    assert response.json()["database"] in {"sqlite", "postgresql"}
 
 
 def test_zoning_calculation() -> None:

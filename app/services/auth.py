@@ -3,7 +3,7 @@ import secrets
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, create_engine, delete, select
+from sqlalchemy import DateTime, ForeignKey, Integer, String, create_engine, delete, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
@@ -43,6 +43,14 @@ SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 
 def init_database() -> None:
     Base.metadata.create_all(engine)
+
+
+def database_diagnostics() -> dict[str, str]:
+    with engine.connect() as database:
+        if settings.database_url:
+            row = database.execute(text("SELECT current_database() AS name, current_user AS username")).one()
+            return {"backend": "postgresql", "database": row.name, "user": row.username}
+        return {"backend": "sqlite", "database": str(Path(settings.database_path))}
 
 def _hash_password(password: str, salt: bytes | None = None) -> str:
     salt = salt or secrets.token_bytes(16)
@@ -196,6 +204,16 @@ def create_session(email: str, password: str) -> str | None:
             (token_hash, user["id"], expires_at.isoformat()),
         )
         return token
+
+
+def login_failure_reason(email: str, password: str) -> str | None:
+    with SessionLocal() as database:
+        user = database.scalar(select(User).where(User.email == email))
+        if not user:
+            return "user_missing"
+        if not _verify_password(password, user.password_hash):
+            return "password_mismatch"
+        return None
 
 
 def get_user(token: str | None) -> dict[str, str] | None:

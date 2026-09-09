@@ -10,6 +10,7 @@ from app.services.auth import (
     create_user,
     delete_session,
     get_user,
+    login_failure_reason,
     reset_password,
 )
 from app.services.email import send_password_reset_email
@@ -46,6 +47,7 @@ def register(credentials: Credentials, response: Response) -> dict[str, str]:
 def login(credentials: Credentials, response: Response) -> dict[str, str]:
     token = create_session(str(credentials.email).strip().lower(), credentials.password)
     if not token:
+        logger.warning("Login rejected for %s: %s", str(credentials.email).lower(), login_failure_reason(str(credentials.email).strip().lower(), credentials.password))
         raise HTTPException(status_code=401, detail="Email or password is incorrect.")
     response.set_cookie("landwise_session", token, httponly=True, samesite="lax", max_age=604800)
     return {"message": "Signed in successfully."}

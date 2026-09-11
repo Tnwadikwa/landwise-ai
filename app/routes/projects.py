@@ -2,9 +2,10 @@ import io
 import json
 import uuid
 from datetime import datetime
+from html import escape
 
 from fastapi import APIRouter, Cookie, File, HTTPException, Response, UploadFile, status
-from fastapi.responses import RedirectResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from pydantic import BaseModel, Field
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
@@ -114,6 +115,27 @@ def project_documents(project_id: str, landwise_session: str | None = Cookie(def
          "created_at": document.created_at.isoformat()}
         for document in list_documents(project_id)
     ]
+
+
+@router.get("/{project_id}/documents/view", response_class=HTMLResponse)
+def view_project_documents(
+    project_id: str, landwise_session: str | None = Cookie(default=None),
+) -> HTMLResponse:
+    user_id = _authenticated_user_id(landwise_session)
+    project = get_project(user_id, project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found.")
+    rows = "".join(
+        f'<li><span>{escape(document.original_name)}</span>'
+        f'<a href="/api/v1/projects/{project_id}/documents/{document.id}" target="_blank">Open</a>'
+        f'<a class="pdf" href="/api/v1/projects/{project_id}/documents/{document.id}/pdf" target="_blank">PDF</a></li>'
+        for document in list_documents(project_id)
+    ) or "<li>No documents have been uploaded for this project.</li>"
+    return HTMLResponse(
+        f"<!doctype html><title>Documents | Landwise AI</title>"
+        f"<style>body{{background:#f5f7f1;color:#15231c;font:16px Arial,sans-serif;margin:0}}main{{margin:48px auto;max-width:760px;padding:0 24px}}a{{color:#1f5d45;font-weight:700;text-decoration:none}}ul{{background:#fff;border:1px solid #dfe5dc;border-radius:8px;list-style:none;padding:0}}li{{align-items:center;border-bottom:1px solid #dfe5dc;display:flex;gap:22px;justify-content:flex-end;padding:16px}}li:last-child{{border:0}}li span{{margin-right:auto;overflow-wrap:anywhere}}.pdf{{background:#a13e2d;border-radius:4px;color:#fff;font-size:12px;padding:4px 7px}}</style>"
+        f"<main><a href=\"/dashboard.html#projects\">Back to projects</a><h1>{escape(project.name)}</h1><p>Private project documents</p><ul>{rows}</ul></main>"
+    )
 
 
 @router.post("/{project_id}/documents", status_code=status.HTTP_201_CREATED)

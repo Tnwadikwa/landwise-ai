@@ -169,6 +169,9 @@ def test_signed_in_user_can_save_list_download_and_delete_project(monkeypatch: p
     assert stored_keys and stored_keys[0].startswith(f"{project_id}/")
     document_id = uploaded.json()["id"]
     assert client.get(f"/api/v1/projects/{project_id}/documents").json()[0]["name"] == "survey-plan.pdf"
+    document_page = client.get(f"/api/v1/projects/{project_id}/documents/view")
+    assert document_page.status_code == 200
+    assert "survey-plan.pdf" in document_page.text
     downloaded_document = client.get(
         f"/api/v1/projects/{project_id}/documents/{document_id}", follow_redirects=False,
     )

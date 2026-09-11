@@ -115,73 +115,10 @@ const renderProjects = (projects) => {
         upload.disabled = false;
       }
     });
-    const viewDocuments = document.createElement('button');
+    const viewDocuments = document.createElement('a');
     viewDocuments.className = 'text-button';
     viewDocuments.textContent = `View documents (${project.document_count})`;
-    viewDocuments.disabled = project.document_count === 0;
-    viewDocuments.addEventListener('click', async () => {
-      viewDocuments.disabled = true;
-      viewDocuments.textContent = 'Loading documents...';
-      const controller = new AbortController();
-      const timeout = window.setTimeout(() => controller.abort(), 10000);
-      let response;
-      try {
-        response = await fetch(`/api/v1/projects/${project.id}/documents`, { signal: controller.signal });
-      } catch {
-        viewDocuments.textContent = 'Document list timed out';
-        viewDocuments.disabled = false;
-        return;
-      } finally {
-        window.clearTimeout(timeout);
-      }
-      if (!response.ok) {
-        viewDocuments.textContent = 'Could not load documents';
-        viewDocuments.disabled = false;
-        return;
-      }
-      const documents = await response.json();
-      const existingList = card.querySelector('.document-list');
-      if (existingList) {
-        existingList.remove();
-        viewDocuments.disabled = false;
-        viewDocuments.textContent = `View documents (${project.document_count})`;
-        return;
-      }
-      if (!documents.length) {
-        viewDocuments.textContent = 'No documents uploaded';
-        viewDocuments.disabled = false;
-        return;
-      }
-      const documentList = document.createElement('div');
-      documentList.className = 'document-list';
-      documents.forEach((document) => {
-        const row = document.createElement('div');
-        row.className = 'document-row';
-        const name = document.createElement('span');
-        name.textContent = document.name;
-        const actions = document.createElement('div');
-        const open = document.createElement('a');
-        open.className = 'text-button';
-        open.href = `/api/v1/projects/${project.id}/documents/${document.id}`;
-        open.target = '_blank';
-        open.rel = 'noreferrer';
-        open.textContent = 'Open';
-        const pdf = document.createElement('a');
-        pdf.className = 'pdf-document-button';
-        pdf.href = `/api/v1/projects/${project.id}/documents/${document.id}/pdf`;
-        pdf.target = '_blank';
-        pdf.rel = 'noreferrer';
-        pdf.textContent = 'PDF';
-        pdf.title = 'Open as PDF';
-        pdf.setAttribute('aria-label', `Open ${document.name} as PDF`);
-        actions.append(open, pdf);
-        row.append(name, actions);
-        documentList.append(row);
-      });
-      card.append(documentList);
-      viewDocuments.disabled = false;
-      viewDocuments.textContent = `Hide documents (${documents.length})`;
-    });
+    viewDocuments.href = `/api/v1/projects/${project.id}/documents/view`;
     const review = document.createElement('button');
     review.className = 'text-button';
     review.textContent = project.review_status ? 'Review requested' : 'Request review';

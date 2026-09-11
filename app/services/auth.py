@@ -83,7 +83,7 @@ def init_database() -> None:
     columns = {column["name"] for column in inspect(engine).get_columns("users")}
     for name, definition in {
         "first_name": "VARCHAR(80)", "surname": "VARCHAR(80)", "date_of_birth": "DATE", "gender": "VARCHAR(30)",
-        "email_verified": "BOOLEAN NOT NULL DEFAULT 1",
+        "email_verified": "BOOLEAN NOT NULL DEFAULT TRUE",
     }.items():
         if name not in columns:
             with engine.begin() as database:

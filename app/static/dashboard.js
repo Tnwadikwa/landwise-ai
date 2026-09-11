@@ -8,6 +8,7 @@ document.querySelectorAll('.plan-badge').forEach((badge) => badge.remove());
 document.querySelector('.workspace-tabs a[href="#premium"]').textContent = 'Landwise AI Plus';
 document.querySelector('#premium .eyebrow').textContent = '04 · Landwise AI Plus';
 document.querySelector('.workspace-tabs a[href="#security"]')?.remove();
+document.querySelector('.secure-note')?.remove();
 document.querySelectorAll('.premium-card button').forEach((button) => {
   button.textContent = 'Available on Landwise AI Plus';
 });

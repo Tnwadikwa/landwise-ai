@@ -78,14 +78,57 @@ const renderProjects = (projects) => {
     const name = document.createElement('strong');
     name.textContent = project.name;
     const meta = document.createElement('span');
-    meta.textContent = `${project.district} · ${project.asset_type}`;
+    meta.textContent = `${project.district} · ${project.asset_type} · ${project.stage}`;
     details.append(name, meta);
     const actions = document.createElement('div');
     actions.className = 'saved-project-actions';
+    const compare = document.createElement('input');
+    compare.type = 'checkbox';
+    compare.className = 'compare-project';
+    compare.value = project.id;
+    compare.setAttribute('aria-label', `Compare ${project.name}`);
+    compare.addEventListener('change', () => renderComparison(projects));
     const download = document.createElement('a');
     download.className = 'text-button';
     download.href = `/api/v1/projects/${project.id}/report.pdf`;
     download.textContent = 'Download PDF';
+    const upload = document.createElement('button');
+    upload.className = 'text-button';
+    upload.textContent = `Documents (${project.document_count})`;
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.pdf,image/jpeg,image/png';
+    fileInput.hidden = true;
+    upload.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', async () => {
+      const [file] = fileInput.files;
+      if (!file) return;
+      upload.disabled = true;
+      upload.textContent = 'Uploading...';
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await fetch(`/api/v1/projects/${project.id}/documents`, { method: 'POST', body: formData });
+      if (response.ok) loadProjects();
+      else {
+        const body = await response.json();
+        upload.textContent = body.detail || 'Upload failed';
+        upload.disabled = false;
+      }
+    });
+    const review = document.createElement('button');
+    review.className = 'text-button';
+    review.textContent = project.review_status ? 'Review requested' : 'Request review';
+    review.disabled = Boolean(project.review_status);
+    review.addEventListener('click', async () => {
+      const note = window.prompt('What should the professional review?');
+      if (note === null) return;
+      review.disabled = true;
+      const response = await fetch(`/api/v1/projects/${project.id}/professional-review`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ note }),
+      });
+      if (response.ok) loadProjects();
+      else review.disabled = false;
+    });
     const remove = document.createElement('button');
     remove.className = 'text-button';
     remove.textContent = 'Delete';
@@ -95,9 +138,24 @@ const renderProjects = (projects) => {
       if (response.ok) loadProjects();
       else remove.disabled = false;
     });
-    actions.append(download, remove);
+    actions.append(compare, fileInput, upload, review, download, remove);
     card.append(details, actions);
     projectsList.append(card);
+  });
+};
+
+const renderComparison = (projects) => {
+  const selectedIds = [...document.querySelectorAll('.compare-project:checked')].map((input) => input.value);
+  const selected = projects.filter((project) => selectedIds.includes(project.id));
+  const panel = document.querySelector('#comparison-panel');
+  const results = document.querySelector('#comparison-results');
+  panel.hidden = selected.length < 2;
+  results.replaceChildren();
+  selected.slice(0, 3).forEach((project) => {
+    const item = document.createElement('article');
+    item.className = 'comparison-item';
+    item.innerHTML = `<strong>${project.name}</strong><span>${project.asset_type}</span><b>${project.estimated_roi_percentage}% ROI</b><small>${formatNaira(project.projected_gross_revenue_ngn)} revenue</small>`;
+    results.append(item);
   });
 };
 

@@ -10,6 +10,41 @@ const formatNaira = (value) => new Intl.NumberFormat('en-NG', {
   style: 'currency', currency: 'NGN', maximumFractionDigits: 0,
 }).format(value);
 
+const getTrustPanel = () => {
+  let panel = document.querySelector('#trust-panel');
+  if (panel) return panel;
+  panel = document.createElement('section');
+  panel.id = 'trust-panel';
+  panel.className = 'trust-panel';
+  panel.innerHTML = '<div class="trust-panel-heading"><div><p class="eyebrow">Verification and sources</p><h3>Know what supports this estimate</h3></div><strong id="confidence-level" class="confidence-badge"></strong></div><a id="verified-location-map" class="verified-location-map" target="_blank" rel="noreferrer" hidden></a><div class="trust-grid"><section><h4>Verification status</h4><ul id="verification-checks" class="verification-checks"></ul></section><section><h4>Assumptions used</h4><ul id="assumptions-list" class="assumptions-list"></ul></section></div>';
+  document.querySelector('#results .next-step').before(panel);
+  return panel;
+};
+
+const renderTrustPanel = (body) => {
+  const panel = getTrustPanel();
+  const location = body.verified_location;
+  document.querySelector('#confidence-level').textContent = `${body.confidence_level} confidence`;
+  document.querySelector('#verification-checks').replaceChildren(...body.verification_checks.map((check) => {
+    const item = document.createElement('li');
+    item.className = `verification-${check.status}`;
+    item.textContent = `${check.label}: ${check.detail}`;
+    return item;
+  }));
+  document.querySelector('#assumptions-list').replaceChildren(...body.assumptions.map((assumption) => {
+    const item = document.createElement('li');
+    item.textContent = assumption;
+    return item;
+  }));
+  const map = document.querySelector('#verified-location-map');
+  map.hidden = !location;
+  if (location) {
+    map.href = `https://www.openstreetmap.org/search?query=${encodeURIComponent(location)}`;
+    map.textContent = `Confirm location: ${location}`;
+  }
+  panel.hidden = false;
+};
+
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
   errorMessage.hidden = true;
@@ -35,6 +70,7 @@ form.addEventListener('submit', async (event) => {
     document.querySelector('#coverage').textContent = `${body.max_allowable_coverage_sqm.toLocaleString()} sqm`;
     document.querySelector('#marketing-copy').textContent = body.marketing_copy_global;
     document.querySelector('#notes').innerHTML = body.fcda_compliance_notes.map((note) => `<li>${note}</li>`).join('');
+    renderTrustPanel(body);
     currentPlot = { ...data, project_name: projectName };
     currentReport = body;
     saveProjectButton.hidden = false;
@@ -54,6 +90,7 @@ document.querySelector('#new-analysis').addEventListener('click', () => {
   saveProjectButton.hidden = true;
   currentPlot = undefined;
   currentReport = undefined;
+  document.querySelector('#trust-panel')?.setAttribute('hidden', '');
   form.reset();
   document.querySelector('#analyzer').scrollIntoView({ behavior: 'smooth' });
 });

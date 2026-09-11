@@ -10,6 +10,14 @@ class PlotDetails(BaseModel):
     acquisition_cost_ngn: float = Field(..., ge=0, json_schema_extra={"example": 150000000.0})
 
 
+class VerificationCheck(BaseModel):
+    label: str
+    status: str
+    detail: str
+    source: str | None = None
+    checked_at: str
+
+
 class FeasibilityReport(BaseModel):
     district: str
     verified_location: str | None = None
@@ -20,3 +28,6 @@ class FeasibilityReport(BaseModel):
     estimated_roi_percentage: float
     fcda_compliance_notes: list[str]
     marketing_copy_global: str
+    verification_checks: list[VerificationCheck]
+    confidence_level: str
+    assumptions: list[str]

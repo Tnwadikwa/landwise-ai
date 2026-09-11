@@ -3,9 +3,12 @@ from fastapi.testclient import TestClient
 from uuid import uuid4
 
 from app.main import app
+from app.routes import feasibility as feasibility_route
+from app.schemas import PlotDetails
 from app.services.feasibility import analyze_fcda_zoning
 from app.services.location import VerifiedLocation
 from app.services.marketing import fallback_marketing_copy
+from app.services.verification import validate_supplied_land_details
 
 client = TestClient(app)
 
@@ -63,6 +66,14 @@ def test_verified_location_model_preserves_geocoder_data() -> None:
     assert location.longitude == pytest.approx(-0.1870)
 
 
+def test_land_details_reject_placeholders_and_unknown_title_types() -> None:
+    with pytest.raises(ValueError, match="placeholder"):
+        validate_supplied_land_details(PlotDetails(**{**VALID_PLOT, "cadastral_zone": "unknown"}))
+
+    with pytest.raises(ValueError, match="title type could not be recognised"):
+        validate_supplied_land_details(PlotDetails(**{**VALID_PLOT, "title_type": "Official document"}))
+
+
 def test_feasibility_endpoint_requires_account() -> None:
     client.cookies.clear()
     response = client.post("/api/v1/feasibility/generate", json=VALID_PLOT)
@@ -86,6 +97,27 @@ def test_feasibility_endpoint_for_signed_in_user() -> None:
     assert body["estimated_units"] == 4
     assert body["estimated_roi_percentage"] == pytest.approx(44.00, abs=0.01)
     assert body["marketing_copy_global"]
+    assert body["confidence_level"] == "Low"
+    assert body["verification_checks"][0]["status"] == "verified"
+    assert body["assumptions"]
+
+
+def test_unrecognised_location_does_not_generate_projections(monkeypatch: pytest.MonkeyPatch) -> None:
+    client.cookies.clear()
+    email = f"unverified-{uuid4()}@example.com"
+    assert client.post(
+        "/api/v1/auth/register",
+        json={"email": email, "password": "test-password-123"},
+    ).status_code == 201
+
+    async def no_verified_location(_: str) -> None:
+        return None
+
+    monkeypatch.setattr(feasibility_route, "verify_location", no_verified_location)
+    response = client.post("/api/v1/feasibility/generate", json=VALID_PLOT)
+
+    assert response.status_code == 422
+    assert "recognise" in response.json()["detail"]
 
 
 def test_negative_plot_size_is_rejected() -> None:
@@ -100,7 +132,7 @@ def test_missing_required_field_is_rejected() -> None:
     assert response.status_code == 422
 
 
-def test_signed_in_user_can_save_list_download_and_delete_project() -> None:
+def test_signed_in_user_can_save_list_download_and_delete_project(monkeypatch: pytest.MonkeyPatch) -> None:
     client.cookies.clear()
     email = f"project-{uuid4()}@example.com"
     assert client.post(
@@ -116,6 +148,38 @@ def test_signed_in_user_can_save_list_download_and_delete_project() -> None:
     assert saved.status_code == 201
     project_id = saved.json()["id"]
     assert client.get("/api/v1/projects").json()[0]["name"] == "Katampe Opportunity"
+    stored_keys: list[str] = []
+
+    def upload_document(storage_key: str, content: bytes, content_type: str) -> None:
+        assert content.startswith(b"%PDF")
+        assert content_type == "application/pdf"
+        stored_keys.append(storage_key)
+
+    monkeypatch.setattr("app.routes.projects.upload_private_document", upload_document)
+    monkeypatch.setattr(
+        "app.routes.projects.create_private_download_url",
+        lambda storage_key: f"https://storage.example.test/{storage_key}",
+    )
+    monkeypatch.setattr("app.routes.projects.delete_private_documents", lambda storage_keys: None)
+    uploaded = client.post(
+        f"/api/v1/projects/{project_id}/documents",
+        files={"file": ("survey-plan.pdf", b"%PDF-1.4 land survey", "application/pdf")},
+    )
+    assert uploaded.status_code == 201
+    assert stored_keys and stored_keys[0].startswith(f"{project_id}/")
+    document_id = uploaded.json()["id"]
+    assert client.get(f"/api/v1/projects/{project_id}/documents").json()[0]["name"] == "survey-plan.pdf"
+    downloaded_document = client.get(
+        f"/api/v1/projects/{project_id}/documents/{document_id}", follow_redirects=False,
+    )
+    assert downloaded_document.status_code == 307
+    assert downloaded_document.headers["location"].startswith("https://storage.example.test/")
+    review = client.post(
+        f"/api/v1/projects/{project_id}/professional-review",
+        json={"note": "Please review the title and survey plan."},
+    )
+    assert review.status_code == 201
+    assert review.json()["status"] == "requested"
     pdf = client.get(f"/api/v1/projects/{project_id}/report.pdf")
     assert pdf.status_code == 200
     assert pdf.headers["content-type"] == "application/pdf"

@@ -7,17 +7,23 @@ let mode = 'login';
 const recoveryLink = document.querySelector('.recovery-link');
 const profileFields = document.createElement('div');
 profileFields.id = 'profile-fields';
-profileFields.innerHTML = '<label>First name<input name="first_name" autocomplete="given-name" /></label><label>Surname<input name="surname" autocomplete="family-name" /></label><label>Date of birth<input name="date_of_birth" type="date" autocomplete="bday" /></label><label>Gender<select name="gender"><option value="" selected disabled>Select an option</option><option>Woman</option><option>Man</option><option>Non-binary</option><option>Prefer not to say</option></select></label><label id="confirm-password-label">Confirm password<div class="password-field"><input name="confirm_password" type="password" autocomplete="new-password" /><button type="button" id="toggle-confirm-password" aria-label="Show confirm password">Show</button></div></label>';
+profileFields.innerHTML = '<label>First name<input name="first_name" autocomplete="given-name" /></label><label>Surname<input name="surname" autocomplete="family-name" /></label><label>Date of birth<input name="date_of_birth" type="date" autocomplete="bday" /></label><label>Gender<select name="gender"><option value="" selected disabled>Select an option</option><option>Woman</option><option>Man</option><option>Non-binary</option><option>Prefer not to say</option></select></label>';
+const confirmPasswordField = document.createElement('div');
+confirmPasswordField.id = 'confirm-password-field';
+confirmPasswordField.innerHTML = '<label id="confirm-password-label">Confirm password<div class="password-field"><input name="confirm_password" type="password" autocomplete="new-password" /><button type="button" id="toggle-confirm-password" aria-label="Show confirm password">Show</button></div></label>';
 
 const setRegisterFields = (visible) => {
   profileFields.hidden = !visible;
   profileFields.querySelectorAll('input, select').forEach((input) => { input.required = visible; });
+  confirmPasswordField.hidden = !visible;
+  confirmPasswordField.querySelector('input').required = visible;
   recoveryLink.hidden = visible;
+  if (visible && !confirmPasswordField.isConnected) passwordInput.closest('label').after(confirmPasswordField);
   if (visible && !profileFields.isConnected) recoveryLink.before(profileFields);
 };
 
 const updatePasswordMatch = () => {
-  const confirmPassword = profileFields.querySelector('[name="confirm_password"]');
+  const confirmPassword = confirmPasswordField.querySelector('[name="confirm_password"]');
   const labels = [passwordInput.closest('label'), confirmPassword.closest('label')];
   labels.forEach((label) => label.classList.remove('password-match', 'password-mismatch'));
   if (!confirmPassword.value) return;
@@ -25,7 +31,7 @@ const updatePasswordMatch = () => {
 };
 
 passwordInput.addEventListener('input', updatePasswordMatch);
-profileFields.addEventListener('input', updatePasswordMatch);
+confirmPasswordField.addEventListener('input', updatePasswordMatch);
 
 togglePassword.addEventListener('click', () => {
   const isHidden = passwordInput.type === 'password';
@@ -78,7 +84,7 @@ form.addEventListener('submit', async (event) => {
 
 document.addEventListener('click', (event) => {
   if (event.target.id !== 'toggle-confirm-password') return;
-  const input = profileFields.querySelector('[name="confirm_password"]');
+  const input = confirmPasswordField.querySelector('[name="confirm_password"]');
   const hidden = input.type === 'password';
   input.type = hidden ? 'text' : 'password';
   event.target.textContent = hidden ? 'Hide' : 'Show';

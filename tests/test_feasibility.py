@@ -1,5 +1,3 @@
-import json
-
 import pytest
 from fastapi.testclient import TestClient
 from uuid import uuid4
@@ -114,10 +112,10 @@ def test_document_deletion_sends_json_content(monkeypatch: pytest.MonkeyPatch) -
         captured.update(kwargs)
         return DeleteResponse()
 
-    monkeypatch.setattr(storage.httpx, "delete", delete_request)
+    monkeypatch.setattr(storage.httpx, "request", delete_request)
     storage.delete_private_document("project/document.pdf")
 
-    assert json.loads(captured["content"]) == {"prefixes": ["project/document.pdf"]}
+    assert captured["json"] == {"prefixes": ["project/document.pdf"]}
     assert captured["headers"]["Content-Type"] == "application/json"
 
 

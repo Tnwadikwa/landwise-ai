@@ -29,7 +29,13 @@ def upload_private_document(storage_key: str, content: bytes, content_type: str)
     try:
         response.raise_for_status()
     except httpx.HTTPStatusError as error:
-        raise RuntimeError("The document could not be stored securely.") from error
+        if response.status_code in {401, 403}:
+            message = "Private document storage rejected the credentials. Check the Supabase service-role key in Render."
+        elif response.status_code == 404:
+            message = "Private document storage could not find the configured bucket. Check SUPABASE_DOCUMENT_BUCKET."
+        else:
+            message = "Private document storage is temporarily unavailable. Please try again shortly."
+        raise RuntimeError(message) from error
 
 
 def create_private_download_url(storage_key: str) -> str:
@@ -43,7 +49,7 @@ def create_private_download_url(storage_key: str) -> str:
         response.raise_for_status()
         signed_path = response.json()["signedURL"]
     except (httpx.HTTPError, KeyError, ValueError) as error:
-        raise RuntimeError("A secure document link could not be created.") from error
+        raise RuntimeError("A secure document link could not be created. Check Supabase storage configuration.") from error
     return signed_path if signed_path.startswith("http") else f"{settings.supabase_url}{signed_path}"
 
 

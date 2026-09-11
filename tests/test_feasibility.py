@@ -186,6 +186,10 @@ def test_signed_in_user_can_save_list_download_and_delete_project(monkeypatch: p
         "app.routes.projects.create_private_download_url",
         lambda storage_key: f"https://storage.example.test/{storage_key}",
     )
+    monkeypatch.setattr(
+        "app.routes.projects.download_private_document",
+        lambda storage_key: b"%PDF-1.4 land survey",
+    )
     monkeypatch.setattr("app.routes.projects.delete_private_documents", lambda storage_keys: None)
     uploaded = client.post(
         f"/api/v1/projects/{project_id}/documents",
@@ -206,8 +210,9 @@ def test_signed_in_user_can_save_list_download_and_delete_project(monkeypatch: p
     pdf_document = client.get(
         f"/api/v1/projects/{project_id}/documents/{document_id}/pdf", follow_redirects=False,
     )
-    assert pdf_document.status_code == 307
-    assert pdf_document.headers["location"].startswith("https://storage.example.test/")
+    assert pdf_document.status_code == 200
+    assert pdf_document.headers["content-type"] == "application/pdf"
+    assert pdf_document.content.startswith(b"%PDF")
     review = client.post(
         f"/api/v1/projects/{project_id}/professional-review",
         json={"note": "Please review the title and survey plan."},

@@ -127,7 +127,7 @@ def view_project_documents(
         raise HTTPException(status_code=404, detail="Project not found.")
     rows = "".join(
         f'<li><span>{escape(document.original_name)}</span>'
-        f'<a href="/api/v1/projects/{project_id}/documents/{document.id}" target="_blank">Open</a>'
+        f'<a href="/api/v1/projects/{project_id}/documents/{document.id}" target="_blank">Web</a>'
         f'<a class="pdf" href="/api/v1/projects/{project_id}/documents/{document.id}/pdf" target="_blank">PDF</a></li>'
         for document in list_documents(project_id)
     ) or "<li>No documents have been uploaded for this project.</li>"
@@ -188,14 +188,13 @@ def view_project_document_as_pdf(
     document = next((item for item in list_documents(project_id) if item.id == document_id), None)
     if not document:
         raise HTTPException(status_code=404, detail="Document not found.")
-    if document.content_type == "application/pdf":
-        try:
-            return RedirectResponse(create_private_download_url(document.stored_name), status_code=307)
-        except RuntimeError as error:
-            raise HTTPException(status_code=503, detail=str(error)) from error
-
     try:
         source = download_private_document(document.stored_name)
+        if document.content_type == "application/pdf":
+            return StreamingResponse(
+                io.BytesIO(source), media_type="application/pdf",
+                headers={"Content-Disposition": f'inline; filename="{document.original_name}"'},
+            )
         image = ImageReader(io.BytesIO(source))
         image_width, image_height = image.getSize()
     except (RuntimeError, OSError) as error:

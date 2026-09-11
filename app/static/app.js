@@ -63,6 +63,35 @@ const stopAnalysisProgress = () => {
   progressLabel.textContent = 'Ready to analyze';
 };
 
+const fieldLabels = [...form.querySelectorAll('.form-grid label')];
+const clearFieldStates = () => fieldLabels.forEach((label) => {
+  label.classList.remove('is-valid', 'is-invalid');
+});
+const setFieldState = (fieldName, state) => {
+  const input = form.elements.namedItem(fieldName);
+  const label = input?.closest('label');
+  if (label) label.classList.add(state);
+};
+const matchingField = (message) => {
+  const value = message.toLowerCase();
+  if (value.includes('district') || value.includes('locality') || value.includes('location')) return 'district';
+  if (value.includes('title type') || value.includes('title')) return 'title_type';
+  if (value.includes('cadastral')) return 'cadastral_zone';
+  if (value.includes('plot size') || value.includes('measurement')) return 'plot_size_sqm';
+  if (value.includes('acquisition') || value.includes('amount')) return 'acquisition_cost_ngn';
+  if (value.includes('asset') || value.includes('development')) return 'target_asset_type';
+  return undefined;
+};
+
+form.addEventListener('invalid', (event) => {
+  event.target.closest('label')?.classList.add('is-invalid');
+}, true);
+
+form.addEventListener('input', (event) => {
+  const label = event.target.closest('label');
+  label?.classList.remove('is-invalid', 'is-valid');
+});
+
 const formatNaira = (value) => new Intl.NumberFormat('en-NG', {
   style: 'currency', currency: 'NGN', maximumFractionDigits: 0,
 }).format(value);
@@ -104,6 +133,7 @@ const renderTrustPanel = (body) => {
 
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
+  clearFieldStates();
   errorMessage.hidden = true;
   submitButton.disabled = true;
   submitButton.textContent = 'Analyzing your project…';
@@ -120,7 +150,7 @@ form.addEventListener('submit', async (event) => {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
     });
     const body = await response.json();
-    if (!response.ok) throw new Error(body.detail?.[0]?.msg || 'Please check your entries and try again.');
+    if (!response.ok) throw new Error(typeof body.detail === 'string' ? body.detail : body.detail?.[0]?.msg || 'Please check your entries and try again.');
 
     document.querySelector('#units').textContent = body.estimated_units;
     document.querySelector('#roi').textContent = `${body.estimated_roi_percentage}%`;
@@ -131,10 +161,13 @@ form.addEventListener('submit', async (event) => {
     renderTrustPanel(body);
     currentPlot = { ...data, project_name: projectName };
     currentReport = body;
+    fieldLabels.forEach((label) => label.classList.add('is-valid'));
     saveProjectButton.hidden = false;
     results.hidden = false;
     results.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (error) {
+    const fieldName = matchingField(error.message);
+    if (fieldName) setFieldState(fieldName, 'is-invalid');
     errorMessage.textContent = error.message;
     errorMessage.hidden = false;
   } finally {

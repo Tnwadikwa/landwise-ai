@@ -5,6 +5,63 @@ const submitButton = document.querySelector('#submit-button');
 const saveProjectButton = document.querySelector('#save-project');
 let currentPlot;
 let currentReport;
+const progressLabel = document.querySelector('.form-progress-label');
+const formHeading = document.querySelector('.form-card-heading');
+const analysisProgress = document.createElement('div');
+analysisProgress.className = 'analysis-progress';
+analysisProgress.hidden = true;
+analysisProgress.setAttribute('role', 'status');
+analysisProgress.innerHTML = '<span class="progress-dot"></span><span id="analysis-progress-text">Verifying location</span><div class="progress-track"><span></span></div>';
+formHeading.after(analysisProgress);
+
+const addTooltip = (selector, text) => {
+  const input = document.querySelector(selector);
+  const label = input?.closest('label');
+  if (!label) return;
+  const button = document.createElement('button');
+  button.className = 'term-tooltip';
+  button.type = 'button';
+  button.textContent = '?';
+  button.setAttribute('aria-label', text);
+  button.dataset.tooltip = text;
+  label.append(button);
+};
+
+addTooltip('[name="title_type"]', 'Title type is the legal basis for holding or using the land, such as a Certificate of Occupancy or Right of Occupancy.');
+addTooltip('[name="cadastral_zone"]', 'A cadastral zone is an official land-administration area used to identify plots and planning records.');
+
+const addMetricTooltip = (id, text) => {
+  const metric = document.querySelector(id).closest('article');
+  const label = metric.querySelector('span');
+  const button = document.createElement('button');
+  button.className = 'term-tooltip';
+  button.type = 'button';
+  button.textContent = '?';
+  button.setAttribute('aria-label', text);
+  button.dataset.tooltip = text;
+  label.append(button);
+};
+
+addMetricTooltip('#roi', 'ROI means return on investment: the estimated gain or loss compared with the total acquisition and construction cost.');
+addMetricTooltip('#coverage', 'Buildable coverage is the estimated maximum land area that the building may cover at ground level, subject to formal planning approval.');
+
+const progressSteps = ['Verifying location', 'Checking land details', 'Building estimate'];
+const startAnalysisProgress = () => {
+  let step = 0;
+  analysisProgress.hidden = false;
+  progressLabel.textContent = progressSteps[step];
+  document.querySelector('#analysis-progress-text').textContent = progressSteps[step];
+  return window.setInterval(() => {
+    step = Math.min(step + 1, progressSteps.length - 1);
+    progressLabel.textContent = progressSteps[step];
+    document.querySelector('#analysis-progress-text').textContent = progressSteps[step];
+  }, 1100);
+};
+
+const stopAnalysisProgress = () => {
+  analysisProgress.hidden = true;
+  progressLabel.textContent = 'Ready to analyze';
+};
 
 const formatNaira = (value) => new Intl.NumberFormat('en-NG', {
   style: 'currency', currency: 'NGN', maximumFractionDigits: 0,
@@ -50,6 +107,7 @@ form.addEventListener('submit', async (event) => {
   errorMessage.hidden = true;
   submitButton.disabled = true;
   submitButton.textContent = 'Analyzing your project…';
+  const progressTimer = startAnalysisProgress();
 
   const data = Object.fromEntries(new FormData(form));
   const projectName = data.project_name;
@@ -80,6 +138,8 @@ form.addEventListener('submit', async (event) => {
     errorMessage.textContent = error.message;
     errorMessage.hidden = false;
   } finally {
+    window.clearInterval(progressTimer);
+    stopAnalysisProgress();
     submitButton.disabled = false;
     submitButton.innerHTML = 'Generate my feasibility plan <span>→</span>';
   }

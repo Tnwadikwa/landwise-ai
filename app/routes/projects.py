@@ -75,6 +75,25 @@ def _project_summary(project) -> dict:
     }
 
 
+def _project_analysis_page(project) -> HTMLResponse:
+    plot = json.loads(project.plot_json)
+    report = json.loads(project.report_json)
+    verification_rows = "".join(
+        f"<li><strong>{escape(check['label'])}: </strong>{escape(check['status'].title())}. {escape(check['detail'])}</li>"
+        for check in report.get("verification_checks", [])
+    )
+    assumption_rows = "".join(f"<li>{escape(assumption)}</li>" for assumption in report.get("assumptions", []))
+    planning_rows = "".join(f"<li>{escape(note)}</li>" for note in report["fcda_compliance_notes"])
+    return HTMLResponse(
+        f"<!doctype html><title>{escape(project.name)} | Landwise AI</title>"
+        f"<style>body{{background:#f5f7f1;color:#15231c;font:16px Arial,sans-serif;margin:0}}main{{margin:48px auto;max-width:960px;padding:0 24px}}a{{color:#1f5d45;font-weight:700;text-decoration:none}}.eyebrow{{color:#1f5d45;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}}.metrics{{display:grid;gap:12px;grid-template-columns:repeat(4,1fr);margin:28px 0}}.metrics div,section{{background:#fff;border:1px solid #dfe5dc;border-radius:8px;padding:20px}}.metrics span{{color:#68736c;display:block;font-size:13px}}.metrics strong{{display:block;font-size:24px;margin-top:8px}}.grid{{display:grid;gap:16px;grid-template-columns:1fr 1fr}}h1{{margin:8px 0}}h2{{font-size:18px;margin-top:0}}li{{border-top:1px solid #dfe5dc;padding:10px 0}}ul{{list-style:none;margin:0;padding:0}}p{{line-height:1.5}}@media(max-width:720px){{.metrics,.grid{{grid-template-columns:1fr}}}}</style>"
+        f"<main><a href=\"/dashboard.html#projects\">Back to projects</a><p class=\"eyebrow\">Saved feasibility analysis</p><h1>{escape(project.name)}</h1><p>{escape(plot['district'])} · {escape(plot['target_asset_type'])}</p>"
+        f"<div class=\"metrics\"><div><span>Estimated units</span><strong>{report['estimated_units']}</strong></div><div><span>Estimated ROI</span><strong>{report['estimated_roi_percentage']}%</strong></div><div><span>Projected revenue</span><strong>NGN {report['projected_gross_revenue_ngn']:,.0f}</strong></div><div><span>Confidence</span><strong>{escape(report.get('confidence_level', 'Unknown'))}</strong></div></div>"
+        f"<div class=\"grid\"><section><h2>Verification and sources</h2><ul>{verification_rows}</ul></section><section><h2>Assumptions used</h2><ul>{assumption_rows}</ul></section><section><h2>Planning checklist</h2><ul>{planning_rows}</ul></section><section><h2>AI marketing draft</h2><p>{escape(report['marketing_copy_global'])}</p></section></div></main>",
+        headers={"Cache-Control": "no-store"},
+    )
+
+
 @router.get("")
 def projects(landwise_session: str | None = Cookie(default=None)) -> list[dict]:
     user_id = _authenticated_user_id(landwise_session)
@@ -89,6 +108,17 @@ def save_project(
     user_id = _authenticated_user_id(landwise_session)
     project = create_project(user_id, request.name.strip(), request.plot.model_dump(), request.report.model_dump())
     return _project_summary(project)
+
+
+@router.get("/{project_id}/analysis", response_class=HTMLResponse)
+def view_project_analysis(
+    project_id: str, landwise_session: str | None = Cookie(default=None),
+) -> HTMLResponse:
+    user_id = _authenticated_user_id(landwise_session)
+    project = get_project(user_id, project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found.")
+    return _project_analysis_page(project)
 
 
 @router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)

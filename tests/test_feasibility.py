@@ -201,6 +201,10 @@ def test_signed_in_user_can_save_list_download_and_delete_project(monkeypatch: p
     assert saved.status_code == 201
     project_id = saved.json()["id"]
     assert client.get("/api/v1/projects").json()[0]["name"] == "Katampe Opportunity"
+    analysis = client.get(f"/api/v1/projects/{project_id}/analysis")
+    assert analysis.status_code == 200
+    assert "Saved feasibility analysis" in analysis.text
+    assert "Estimated ROI" in analysis.text
     stored_keys: list[str] = []
 
     def upload_document(storage_key: str, content: bytes, content_type: str) -> None:

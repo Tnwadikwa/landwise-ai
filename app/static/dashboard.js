@@ -92,6 +92,10 @@ const renderProjects = (projects) => {
     download.className = 'text-button';
     download.href = `/api/v1/projects/${project.id}/report.pdf`;
     download.textContent = 'Download PDF';
+    const viewAnalysis = document.createElement('a');
+    viewAnalysis.className = 'text-button';
+    viewAnalysis.href = `/api/v1/projects/${project.id}/analysis`;
+    viewAnalysis.textContent = 'View analysis';
     const upload = document.createElement('button');
     upload.className = 'text-button';
     upload.textContent = 'Upload document';
@@ -142,7 +146,7 @@ const renderProjects = (projects) => {
       if (response.ok) loadProjects();
       else remove.disabled = false;
     });
-    actions.append(compare, fileInput, upload, viewDocuments, review, download, remove);
+    actions.append(compare, fileInput, upload, viewAnalysis, viewDocuments, review, download, remove);
     card.append(details, actions);
     projectsList.append(card);
   });

@@ -35,6 +35,9 @@ def health_check() -> dict[str, str]:
         "smtp": "configured" if all(
             (settings.smtp_host, settings.smtp_username, settings.smtp_password, settings.smtp_from_email)
         ) else "incomplete",
+        "private_document_storage": "configured" if all(
+            (settings.supabase_url, settings.supabase_service_role_key, settings.supabase_document_bucket)
+        ) else "incomplete",
     }
 
 

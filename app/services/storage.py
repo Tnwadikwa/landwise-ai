@@ -32,7 +32,7 @@ def upload_private_document(storage_key: str, content: bytes, content_type: str)
         if response.status_code in {401, 403}:
             message = "Private document storage rejected the credentials. Check the Supabase service-role key in Render."
         elif response.status_code == 404:
-            message = "Private document storage could not find the configured bucket. Check SUPABASE_DOCUMENT_BUCKET."
+            message = "Private document storage could not find the bucket or Supabase project. Check SUPABASE_URL and SUPABASE_DOCUMENT_BUCKET in Render."
         else:
             message = "Private document storage is temporarily unavailable. Please try again shortly."
         raise RuntimeError(message) from error

@@ -121,8 +121,10 @@ const renderProjects = (projects) => {
     viewDocuments.disabled = project.document_count === 0;
     viewDocuments.addEventListener('click', async () => {
       viewDocuments.disabled = true;
+      viewDocuments.textContent = 'Loading documents...';
       const response = await fetch(`/api/v1/projects/${project.id}/documents`);
       if (!response.ok) {
+        viewDocuments.textContent = 'Could not load documents';
         viewDocuments.disabled = false;
         return;
       }
@@ -130,6 +132,12 @@ const renderProjects = (projects) => {
       const existingList = card.querySelector('.document-list');
       if (existingList) {
         existingList.remove();
+        viewDocuments.disabled = false;
+        viewDocuments.textContent = `View documents (${project.document_count})`;
+        return;
+      }
+      if (!documents.length) {
+        viewDocuments.textContent = 'No documents uploaded';
         viewDocuments.disabled = false;
         return;
       }
@@ -161,6 +169,7 @@ const renderProjects = (projects) => {
       });
       card.append(documentList);
       viewDocuments.disabled = false;
+      viewDocuments.textContent = `Hide documents (${documents.length})`;
     });
     const review = document.createElement('button');
     review.className = 'text-button';

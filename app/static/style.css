@@ -14,7 +14,7 @@
 @media (max-width: 720px) { .workspace-header { padding: 14px 18px 10px; }.workspace-tabs a { font-size: .72rem; padding: 8px 9px; }.dashboard-shell { padding-left: 18px; padding-right: 18px; }.workspace-hero { margin-left: -18px; margin-right: -18px; padding-left: 18px; padding-right: 18px; }.workspace-panel, .analyzer-panel { padding: 24px 18px; }.panel-heading { flex-direction: column; gap: 14px; }.workspace-status { width: 100%; }.account-menu > span { display: none; } }
 @media (max-width: 720px) { .settings-grid, .premium-grid { grid-template-columns: 1fr; }.saved-project { align-items: flex-start; flex-direction: column; gap: 14px; } }
 .saved-projects-list { display: grid; gap: 10px; margin-top: 25px; }
-.saved-project { align-items: center; background: white; border: 1px solid var(--line); border-radius: 14px; display: flex; justify-content: space-between; padding: 18px 22px; }
+.saved-project { align-items: center; background: white; border: 1px solid var(--line); border-radius: 14px; display: flex; flex-wrap: wrap; justify-content: space-between; padding: 18px 22px; }
 .saved-project strong, .saved-project span { display: block; }
 .saved-project span { color: var(--muted); font-size: .8rem; margin-top: 5px; }
 .saved-project-actions, .result-actions { align-items: center; display: flex; gap: 18px; }

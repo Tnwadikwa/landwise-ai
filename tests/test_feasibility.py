@@ -1,3 +1,5 @@
+import json
+
 import pytest
 from fastapi.testclient import TestClient
 from uuid import uuid4
@@ -90,6 +92,33 @@ def test_relative_signed_url_includes_supabase_storage_api_path(monkeypatch: pyt
     signed_url = storage.create_private_download_url("project/file.pdf")
 
     assert signed_url.startswith("https://example.supabase.co/storage/v1/object/sign/")
+
+
+def test_document_deletion_sends_json_content(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        storage,
+        "settings",
+        SimpleNamespace(
+            supabase_url="https://example.supabase.co",
+            supabase_service_role_key="service-key",
+            supabase_document_bucket="landwise-documents",
+        ),
+    )
+    captured: dict[str, object] = {}
+
+    class DeleteResponse:
+        def raise_for_status(self) -> None:
+            return None
+
+    def delete_request(*args, **kwargs):
+        captured.update(kwargs)
+        return DeleteResponse()
+
+    monkeypatch.setattr(storage.httpx, "delete", delete_request)
+    storage.delete_private_document("project/document.pdf")
+
+    assert json.loads(captured["content"]) == {"prefixes": ["project/document.pdf"]}
+    assert captured["headers"]["Content-Type"] == "application/json"
 
 
 def test_land_details_reject_placeholders_and_unknown_title_types() -> None:

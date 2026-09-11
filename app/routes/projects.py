@@ -128,13 +128,14 @@ def view_project_documents(
     rows = "".join(
         f'<li><span>{escape(document.original_name)}</span>'
         f'<a href="/api/v1/projects/{project_id}/documents/{document.id}" target="_blank">Web</a>'
-        f'<a class="pdf" href="/api/v1/projects/{project_id}/documents/{document.id}/pdf">PDF</a></li>'
+        f'<a class="pdf" href="/api/v1/projects/{project_id}/documents/{document.id}/pdf" download>PDF</a></li>'
         for document in list_documents(project_id)
     ) or "<li>No documents have been uploaded for this project.</li>"
     return HTMLResponse(
         f"<!doctype html><title>Documents | Landwise AI</title>"
         f"<style>body{{background:#f5f7f1;color:#15231c;font:16px Arial,sans-serif;margin:0}}main{{margin:48px auto;max-width:760px;padding:0 24px}}a{{color:#1f5d45;font-weight:700;text-decoration:none}}ul{{background:#fff;border:1px solid #dfe5dc;border-radius:8px;list-style:none;padding:0}}li{{align-items:center;border-bottom:1px solid #dfe5dc;display:flex;gap:22px;justify-content:flex-end;padding:16px}}li:last-child{{border:0}}li span{{margin-right:auto;overflow-wrap:anywhere}}.pdf{{background:#a13e2d;border-radius:4px;color:#fff;font-size:12px;padding:4px 7px}}</style>"
-        f"<main><a href=\"/dashboard.html#projects\">Back to projects</a><h1>{escape(project.name)}</h1><p>Private project documents</p><ul>{rows}</ul></main>"
+        f"<main><a href=\"/dashboard.html#projects\">Back to projects</a><h1>{escape(project.name)}</h1><p>Private project documents</p><ul>{rows}</ul></main>",
+        headers={"Cache-Control": "no-store"},
     )
 
 

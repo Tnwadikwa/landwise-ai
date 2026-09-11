@@ -202,6 +202,8 @@ def test_signed_in_user_can_save_list_download_and_delete_project(monkeypatch: p
     document_page = client.get(f"/api/v1/projects/{project_id}/documents/view")
     assert document_page.status_code == 200
     assert "survey-plan.pdf" in document_page.text
+    assert "download" in document_page.text
+    assert document_page.headers["cache-control"] == "no-store"
     downloaded_document = client.get(
         f"/api/v1/projects/{project_id}/documents/{document_id}", follow_redirects=False,
     )

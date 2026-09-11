@@ -30,8 +30,24 @@ const updatePasswordMatch = () => {
   labels.forEach((label) => label.classList.add(passwordInput.value === confirmPassword.value ? 'password-match' : 'password-mismatch'));
 };
 
+const clearRegistrationFieldStates = () => {
+  form.querySelectorAll('label').forEach((label) => label.classList.remove('field-invalid'));
+};
+
+const highlightInvalidRegistrationFields = () => {
+  let hasInvalidField = false;
+  form.querySelectorAll('input[required], select[required]').forEach((field) => {
+    const invalid = !field.checkValidity();
+    field.closest('label')?.classList.toggle('field-invalid', invalid);
+    hasInvalidField ||= invalid;
+  });
+  return hasInvalidField;
+};
+
 passwordInput.addEventListener('input', updatePasswordMatch);
 confirmPasswordField.addEventListener('input', updatePasswordMatch);
+form.addEventListener('input', (event) => event.target.closest('label')?.classList.remove('field-invalid'));
+form.addEventListener('change', (event) => event.target.closest('label')?.classList.remove('field-invalid'));
 
 togglePassword.addEventListener('click', () => {
   const isHidden = passwordInput.type === 'password';
@@ -61,6 +77,10 @@ if (new URLSearchParams(window.location.search).get('mode') === 'register') setM
 
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
+  if (mode === 'register' && highlightInvalidRegistrationFields()) {
+    showMessage('Complete all required fields before creating an account.', true);
+    return;
+  }
   submit.disabled = true;
   message.hidden = true;
   const payload = Object.fromEntries(new FormData(form));

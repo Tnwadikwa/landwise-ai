@@ -19,11 +19,11 @@ from app.schemas import FeasibilityReport, PlotDetails
 from app.config import settings
 from app.services.auth import get_user, get_user_id
 from app.services.projects import (
-    create_document, create_project, create_review_request, delete_project, get_project,
+    create_document, create_project, create_review_request, delete_document, delete_project, get_project,
     get_review_request, list_documents, list_projects,
 )
 from app.services.storage import (
-    create_private_download_url, delete_private_documents, download_private_document,
+    create_private_download_url, delete_private_document, delete_private_documents, download_private_document,
     upload_private_document,
 )
 
@@ -128,15 +128,35 @@ def view_project_documents(
     rows = "".join(
         f'<li><span>{escape(document.original_name)}</span>'
         f'<a href="/api/v1/projects/{project_id}/documents/{document.id}" target="_blank">Web</a>'
-        f'<a class="pdf" href="/api/v1/projects/{project_id}/documents/{document.id}/pdf" download>PDF</a></li>'
+        f'<a class="pdf" href="/api/v1/projects/{project_id}/documents/{document.id}/pdf" download>PDF</a>'
+        f'<form method="post" action="/api/v1/projects/{project_id}/documents/{document.id}/delete" onsubmit="return confirm(\'Delete this document permanently?\')">'
+        f'<button class="delete-document" type="submit" title="Delete document" aria-label="Delete {escape(document.original_name)}">&#128465;</button></form></li>'
         for document in list_documents(project_id)
     ) or "<li>No documents have been uploaded for this project.</li>"
     return HTMLResponse(
         f"<!doctype html><title>Documents | Landwise AI</title>"
-        f"<style>body{{background:#f5f7f1;color:#15231c;font:16px Arial,sans-serif;margin:0}}main{{margin:48px auto;max-width:760px;padding:0 24px}}a{{color:#1f5d45;font-weight:700;text-decoration:none}}ul{{background:#fff;border:1px solid #dfe5dc;border-radius:8px;list-style:none;padding:0}}li{{align-items:center;border-bottom:1px solid #dfe5dc;display:flex;gap:22px;justify-content:flex-end;padding:16px}}li:last-child{{border:0}}li span{{margin-right:auto;overflow-wrap:anywhere}}.pdf{{background:#a13e2d;border-radius:4px;color:#fff;font-size:12px;padding:4px 7px}}</style>"
+        f"<style>body{{background:#f5f7f1;color:#15231c;font:16px Arial,sans-serif;margin:0}}main{{margin:48px auto;max-width:760px;padding:0 24px}}a{{color:#1f5d45;font-weight:700;text-decoration:none}}ul{{background:#fff;border:1px solid #dfe5dc;border-radius:8px;list-style:none;padding:0}}li{{align-items:center;border-bottom:1px solid #dfe5dc;display:flex;gap:14px;justify-content:flex-end;padding:16px}}li:last-child{{border:0}}li span{{margin-right:auto;overflow-wrap:anywhere}}form{{margin:0}}.pdf{{background:#a13e2d;border-radius:4px;color:#fff;font-size:12px;padding:4px 7px}}.delete-document{{background:none;border:0;color:#a13e2d;cursor:pointer;font-size:18px;padding:2px 5px}}</style>"
         f"<main><a href=\"/dashboard.html#projects\">Back to projects</a><h1>{escape(project.name)}</h1><p>Private project documents</p><ul>{rows}</ul></main>",
         headers={"Cache-Control": "no-store"},
     )
+
+
+@router.post("/{project_id}/documents/{document_id}/delete")
+def remove_project_document(
+    project_id: str, document_id: str, landwise_session: str | None = Cookie(default=None),
+) -> RedirectResponse:
+    user_id = _authenticated_user_id(landwise_session)
+    if not get_project(user_id, project_id):
+        raise HTTPException(status_code=404, detail="Project not found.")
+    document = next((item for item in list_documents(project_id) if item.id == document_id), None)
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found.")
+    try:
+        delete_private_document(document.stored_name)
+    except RuntimeError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
+    delete_document(project_id, document_id)
+    return RedirectResponse(f"/api/v1/projects/{project_id}/documents/view", status_code=303)
 
 
 @router.post("/{project_id}/documents", status_code=status.HTTP_201_CREATED)

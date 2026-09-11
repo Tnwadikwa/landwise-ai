@@ -75,3 +75,7 @@ def delete_private_documents(storage_keys: list[str]) -> None:
         response.raise_for_status()
     except httpx.HTTPStatusError as error:
         raise RuntimeError("The private documents could not be deleted.") from error
+
+
+def delete_private_document(storage_key: str) -> None:
+    delete_private_documents([storage_key])

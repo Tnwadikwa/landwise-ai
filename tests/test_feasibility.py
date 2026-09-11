@@ -190,6 +190,7 @@ def test_signed_in_user_can_save_list_download_and_delete_project(monkeypatch: p
         "app.routes.projects.download_private_document",
         lambda storage_key: b"%PDF-1.4 land survey",
     )
+    monkeypatch.setattr("app.routes.projects.delete_private_document", lambda storage_key: None)
     monkeypatch.setattr("app.routes.projects.delete_private_documents", lambda storage_keys: None)
     uploaded = client.post(
         f"/api/v1/projects/{project_id}/documents",
@@ -203,6 +204,7 @@ def test_signed_in_user_can_save_list_download_and_delete_project(monkeypatch: p
     assert document_page.status_code == 200
     assert "survey-plan.pdf" in document_page.text
     assert "download" in document_page.text
+    assert "delete-document" in document_page.text
     assert document_page.headers["cache-control"] == "no-store"
     downloaded_document = client.get(
         f"/api/v1/projects/{project_id}/documents/{document_id}", follow_redirects=False,
@@ -216,6 +218,9 @@ def test_signed_in_user_can_save_list_download_and_delete_project(monkeypatch: p
     assert pdf_document.headers["content-type"] == "application/pdf"
     assert pdf_document.headers["content-disposition"] == 'attachment; filename="survey-plan.pdf"'
     assert pdf_document.content.startswith(b"%PDF")
+    deleted_document = client.post(f"/api/v1/projects/{project_id}/documents/{document_id}/delete")
+    assert deleted_document.status_code == 200
+    assert client.get(f"/api/v1/projects/{project_id}/documents").json() == []
     review = client.post(
         f"/api/v1/projects/{project_id}/professional-review",
         json={"note": "Please review the title and survey plan."},

@@ -108,6 +108,20 @@ def list_documents(project_id: str) -> list[ProjectDocument]:
         return list(database.scalars(select(ProjectDocument).where(ProjectDocument.project_id == project_id)))
 
 
+def delete_document(project_id: str, document_id: str) -> bool:
+    with SessionLocal() as database:
+        document = database.scalar(
+            select(ProjectDocument).where(
+                ProjectDocument.project_id == project_id, ProjectDocument.id == document_id
+            )
+        )
+        if not document:
+            return False
+        database.delete(document)
+        database.commit()
+        return True
+
+
 def create_review_request(project_id: str, note: str) -> ProfessionalReviewRequest:
     request = ProfessionalReviewRequest(
         id=str(uuid.uuid4()), project_id=project_id, note=note,

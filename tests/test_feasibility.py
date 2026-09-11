@@ -1,6 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 from uuid import uuid4
+from types import SimpleNamespace
 
 from app.main import app
 from app.routes import feasibility as feasibility_route
@@ -8,6 +9,7 @@ from app.schemas import PlotDetails
 from app.services.feasibility import analyze_fcda_zoning
 from app.services.location import VerifiedLocation
 from app.services.marketing import fallback_marketing_copy
+from app.services import storage
 from app.services.verification import validate_supplied_land_details
 
 client = TestClient(app)
@@ -64,6 +66,30 @@ def test_verified_location_model_preserves_geocoder_data() -> None:
     assert location.display_name == "East Legon, Accra, Ghana"
     assert location.latitude == pytest.approx(5.6037)
     assert location.longitude == pytest.approx(-0.1870)
+
+
+def test_relative_signed_url_includes_supabase_storage_api_path(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        storage,
+        "settings",
+        SimpleNamespace(
+            supabase_url="https://example.supabase.co",
+            supabase_service_role_key="service-key",
+            supabase_document_bucket="landwise-documents",
+        ),
+    )
+
+    class SignedResponse:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict[str, str]:
+            return {"signedURL": "/object/sign/landwise-documents/project/file.pdf?token=token"}
+
+    monkeypatch.setattr(storage.httpx, "post", lambda *args, **kwargs: SignedResponse())
+    signed_url = storage.create_private_download_url("project/file.pdf")
+
+    assert signed_url.startswith("https://example.supabase.co/storage/v1/object/sign/")
 
 
 def test_land_details_reject_placeholders_and_unknown_title_types() -> None:

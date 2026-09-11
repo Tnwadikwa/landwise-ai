@@ -50,7 +50,7 @@ def create_private_download_url(storage_key: str) -> str:
         signed_path = response.json()["signedURL"]
     except (httpx.HTTPError, KeyError, ValueError) as error:
         raise RuntimeError("A secure document link could not be created. Check Supabase storage configuration.") from error
-    return signed_path if signed_path.startswith("http") else f"{settings.supabase_url}{signed_path}"
+    return signed_path if signed_path.startswith("http") else f"{settings.supabase_url}/storage/v1{signed_path}"
 
 
 def download_private_document(storage_key: str) -> bytes:

@@ -1,14 +1,42 @@
-const email = document.querySelector('#user-email');
+let email = document.querySelector('#user-email');
 const projectsList = document.querySelector('#saved-projects-list');
 const projectCount = document.querySelector('#project-count');
 const planBadge = document.querySelector('#plan-badge');
+const accountMenu = document.querySelector('.account-menu');
 document.querySelector('.workspace-status')?.remove();
 document.querySelectorAll('.plan-badge').forEach((badge) => badge.remove());
 document.querySelector('.workspace-tabs a[href="#premium"]').textContent = 'Landwise AI Plus';
 document.querySelector('#premium .eyebrow').textContent = '04 · Landwise AI Plus';
+document.querySelector('.workspace-tabs a[href="#security"]')?.remove();
 document.querySelectorAll('.premium-card button').forEach((button) => {
   button.textContent = 'Available on Landwise AI Plus';
 });
+accountMenu.innerHTML = '<span id="user-email">Loading account...</span><div class="account-popover"><button id="account-menu-button" class="account-menu-button" type="button" aria-label="Open account menu" aria-expanded="false" aria-controls="account-menu-options"><span></span><span></span><span></span></button><div id="account-menu-options" class="account-menu-options" hidden><button type="button" data-account-section="profile">Profile information</button><button type="button" data-account-section="security">Account security</button><button type="button" data-account-section="help">Help</button><hr /><button id="logout-button" class="account-signout" type="button">Sign out</button></div></div>';
+email = document.querySelector('#user-email');
+const accountMenuButton = document.querySelector('#account-menu-button');
+const accountMenuOptions = document.querySelector('#account-menu-options');
+const dashboardMain = document.querySelector('.dashboard-shell');
+
+const addPrivateAccountPanel = (id, title, description, content) => {
+  const panel = document.createElement('section');
+  panel.id = id;
+  panel.className = 'workspace-panel is-hidden private-panel';
+  panel.innerHTML = `<div class="panel-heading compact"><div><p class="eyebrow">Account</p><h2>${title}</h2><p>${description}</p></div></div>${content}`;
+  dashboardMain.append(panel);
+};
+
+addPrivateAccountPanel(
+  'profile',
+  'Profile information',
+  'Your Landwise AI account details.',
+  '<div class="settings-grid"><article class="settings-card"><h3>Account email</h3><p id="profile-email">Loading account...</p></article><article class="settings-card"><h3>Account plan</h3><p id="profile-plan">Loading account...</p></article></div>',
+);
+addPrivateAccountPanel(
+  'help',
+  'Help',
+  'Guidance for working through your property analysis.',
+  '<div class="settings-grid"><article class="settings-card"><h3>Running an analysis</h3><p>Start with the details you have, then review the verification status and assumptions before making decisions.</p></article><article class="settings-card"><h3>Documents and review</h3><p>Upload title or survey evidence to a saved project, then request professional review when your documents are ready.</p></article></div>',
+);
 const workspaceTabs = [...document.querySelectorAll('.workspace-tabs a')];
 const workspacePanels = [...document.querySelectorAll('.workspace-panel')];
 const workspaceLinks = [...document.querySelectorAll('a[href^="#"]')];
@@ -47,6 +75,29 @@ const showWorkspaceSection = (sectionId) => {
     tab.classList.toggle('active', tab.getAttribute('href') === `#${targetId}`);
   });
 };
+
+accountMenuButton.addEventListener('click', () => {
+  const open = accountMenuOptions.hidden;
+  accountMenuOptions.hidden = !open;
+  accountMenuButton.setAttribute('aria-expanded', String(open));
+});
+
+document.querySelectorAll('[data-account-section]').forEach((button) => {
+  button.addEventListener('click', () => {
+    const sectionId = button.dataset.accountSection;
+    accountMenuOptions.hidden = true;
+    accountMenuButton.setAttribute('aria-expanded', 'false');
+    window.history.replaceState(null, '', `#${sectionId}`);
+    showWorkspaceSection(sectionId);
+  });
+});
+
+document.addEventListener('click', (event) => {
+  if (!accountMenu.contains(event.target)) {
+    accountMenuOptions.hidden = true;
+    accountMenuButton.setAttribute('aria-expanded', 'false');
+  }
+});
 
 workspaceLinks.forEach((link) => {
   link.addEventListener('click', (event) => {
@@ -183,6 +234,8 @@ window.addEventListener('projects-updated', loadProjects);
 
   const account = await response.json();
   email.textContent = account.email;
+  document.querySelector('#profile-email').textContent = account.email;
+  document.querySelector('#profile-plan').textContent = account.plan === 'paid' ? 'Landwise AI Plus' : 'Landwise AI Free';
   loadProjects();
   document.querySelector('#logout-button').addEventListener('click', async (event) => {
     const button = event.currentTarget;

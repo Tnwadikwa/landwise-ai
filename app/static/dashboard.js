@@ -19,8 +19,25 @@ document.body.classList.remove('is-loading');
 
 const navigateWithTransition = (url) => {
   document.body.classList.add('is-transitioning');
-  setTimeout(() => { window.location.href = url; }, 150);
+  setTimeout(() => { window.location.replace(url); }, 150);
 };
+
+const navigationEntry = performance.getEntriesByType('navigation')[0];
+window.addEventListener('pagehide', () => {
+  sessionStorage.setItem('landwise-dashboard-exited', 'true');
+});
+
+window.addEventListener('pageshow', async (event) => {
+  const returnedByHistory = event.persisted || navigationEntry?.type === 'back_forward';
+  if (returnedByHistory && sessionStorage.getItem('landwise-dashboard-exited') === 'true') {
+    sessionStorage.removeItem('landwise-dashboard-exited');
+    window.location.replace('/login.html');
+    return;
+  }
+  if (!event.persisted && navigationEntry?.type !== 'back_forward') return;
+  const response = await fetch('/api/v1/auth/me', { credentials: 'same-origin', cache: 'no-store' });
+  if (!response.ok) window.location.replace('/login.html');
+});
 
 const addPrivateAccountPanel = (id, title, description, content) => {
   const panel = document.createElement('section');

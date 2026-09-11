@@ -4,8 +4,9 @@ document.body.classList.remove('is-loading');
 
 const navigateWithTransition = (url) => {
   document.body.classList.add('is-transitioning');
-  setTimeout(() => { window.location.href = url; }, 150);
+  setTimeout(() => { window.location.replace(url); }, 150);
 };
+
 
 const form = document.querySelector('#auth-form');
 form.noValidate = true;
@@ -127,9 +128,11 @@ form.addEventListener('submit', async (event) => {
       if (body.verification_required === 'true') {
         window.location.href = `/verify-email.html?email=${encodeURIComponent(payload.email)}`;
       } else {
+        sessionStorage.removeItem('landwise-dashboard-exited');
         navigateWithTransition('/dashboard.html');
       }
     } else {
+      sessionStorage.removeItem('landwise-dashboard-exited');
       navigateWithTransition('/dashboard.html');
     }
   } catch (error) {

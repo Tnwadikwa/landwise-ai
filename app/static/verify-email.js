@@ -5,7 +5,12 @@ const params = new URLSearchParams(window.location.search);
 const emailInput = document.querySelector('#verify-email');
 emailInput.value = params.get('email') || '';
 
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
+  const response = await fetch('/api/v1/auth/me', { credentials: 'same-origin', cache: 'no-store' });
+  if (response.ok) {
+    window.location.replace('/login.html');
+    return;
+  }
   requestAnimationFrame(() => document.body.classList.remove('is-loading'));
 });
 
@@ -29,7 +34,7 @@ form.addEventListener('submit', async (event) => {
     message.className = 'message success';
     message.textContent = body.message;
     message.hidden = false;
-    setTimeout(() => { window.location.href = '/login.html'; }, 1600);
+    setTimeout(() => { window.location.replace('/login.html'); }, 1600);
   } catch (error) {
     message.className = 'message error';
     message.textContent = error.message;

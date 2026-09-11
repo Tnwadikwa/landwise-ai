@@ -43,6 +43,7 @@
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body { margin: 0; color: var(--ink); background: var(--paper); font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif; line-height: 1.5; opacity: 1; transition: opacity .22s ease, transform .22s ease; }
+html.history-exit-guard body { opacity: 0; visibility: hidden; }
 body.auth-page.is-loading { opacity: 0; }
 body.auth-page:not(.is-loading) { opacity: 1; }
 body.is-transitioning, body.page-transitioning { opacity: 0; transform: translateY(-4px); }

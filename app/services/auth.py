@@ -1,9 +1,9 @@
 import hashlib
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, create_engine, delete, select, text
+from sqlalchemy import Date, DateTime, ForeignKey, Integer, String, create_engine, delete, inspect, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
@@ -20,6 +20,10 @@ class User(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     email: Mapped[str] = mapped_column(String(320), unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(512), nullable=False)
+    first_name: Mapped[str | None] = mapped_column(String(80))
+    surname: Mapped[str | None] = mapped_column(String(80))
+    date_of_birth: Mapped[date | None] = mapped_column(Date)
+    gender: Mapped[str | None] = mapped_column(String(30))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
@@ -62,6 +66,13 @@ def _as_utc(value: datetime) -> datetime:
 
 def init_database() -> None:
     Base.metadata.create_all(engine)
+    columns = {column["name"] for column in inspect(engine).get_columns("users")}
+    for name, definition in {
+        "first_name": "VARCHAR(80)", "surname": "VARCHAR(80)", "date_of_birth": "DATE", "gender": "VARCHAR(30)",
+    }.items():
+        if name not in columns:
+            with engine.begin() as database:
+                database.execute(text(f"ALTER TABLE users ADD COLUMN {name} {definition}"))
 
 
 def database_diagnostics() -> dict[str, str]:
@@ -84,12 +95,16 @@ def _verify_password(password: str, stored_hash: str) -> bool:
     return secrets.compare_digest(candidate, digest_hex)
 
 
-def create_user(email: str, password: str) -> bool:
+def create_user(email: str, password: str, first_name: str, surname: str, date_of_birth: date, gender: str) -> bool:
     with SessionLocal() as database:
         database.add(
             User(
                 email=email,
                 password_hash=_hash_password(password),
+                first_name=first_name,
+                surname=surname,
+                date_of_birth=date_of_birth,
+                gender=gender,
                 created_at=datetime.now(timezone.utc),
             )
         )
@@ -140,7 +155,11 @@ def get_user(token: str | None) -> dict[str, str] | None:
         if not user:
             return None
         plan = "paid" if user.email in settings.paid_account_emails else "free"
-        return {"id": str(user.id), "email": user.email, "created_at": user.created_at.isoformat(), "plan": plan}
+        return {
+            "id": str(user.id), "email": user.email, "first_name": user.first_name or "",
+            "surname": user.surname or "", "date_of_birth": user.date_of_birth.isoformat() if user.date_of_birth else "",
+            "gender": user.gender or "", "created_at": user.created_at.isoformat(), "plan": plan,
+        }
 
 
 def get_user_id(email: str) -> int | None:

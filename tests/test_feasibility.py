@@ -13,6 +13,7 @@ from app.services import storage
 from app.services.verification import validate_supplied_land_details
 
 client = TestClient(app)
+PROFILE = {"first_name": "Ada", "surname": "Okafor", "date_of_birth": "1992-04-20", "gender": "Woman"}
 
 
 VALID_PLOT = {
@@ -139,7 +140,7 @@ def test_feasibility_endpoint_for_signed_in_user() -> None:
     email = f"feasibility-{uuid4()}@example.com"
     registered = client.post(
         "/api/v1/auth/register",
-        json={"email": email, "password": "test-password-123"},
+        json={**PROFILE, "email": email, "password": "test-password-123!", "confirm_password": "test-password-123!"},
     )
     assert registered.status_code == 201
 
@@ -160,7 +161,7 @@ def test_unrecognised_location_does_not_generate_projections(monkeypatch: pytest
     email = f"unverified-{uuid4()}@example.com"
     assert client.post(
         "/api/v1/auth/register",
-        json={"email": email, "password": "test-password-123"},
+        json={**PROFILE, "email": email, "password": "test-password-123!", "confirm_password": "test-password-123!"},
     ).status_code == 201
 
     async def no_verified_location(_: str) -> None:
@@ -190,7 +191,7 @@ def test_signed_in_user_can_save_list_download_and_delete_project(monkeypatch: p
     email = f"project-{uuid4()}@example.com"
     assert client.post(
         "/api/v1/auth/register",
-        json={"email": email, "password": "test-password-123"},
+        json={**PROFILE, "email": email, "password": "test-password-123!", "confirm_password": "test-password-123!"},
     ).status_code == 201
     report = client.post("/api/v1/feasibility/generate", json=VALID_PLOT).json()
 

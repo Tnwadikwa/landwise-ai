@@ -4,11 +4,12 @@ from app.services.auth import create_password_reset_token
 from fastapi.testclient import TestClient
 
 client = TestClient(app)
+PROFILE = {"first_name": "Ada", "surname": "Okafor", "date_of_birth": "1992-04-20", "gender": "Woman"}
 
 
 def test_password_reset_reports_email_delivery_failure(monkeypatch) -> None:
     email = "delivery-failure@example.com"
-    client.post("/api/v1/auth/register", json={"email": email, "password": "old-password-123"})
+    client.post("/api/v1/auth/register", json={**PROFILE, "email": email, "password": "old-password-123!", "confirm_password": "old-password-123!"})
 
     def fail_to_send(recipient: str, reset_url: str) -> None:
         raise RuntimeError("SMTP authentication failed")
@@ -22,9 +23,9 @@ def test_password_reset_reports_email_delivery_failure(monkeypatch) -> None:
 
 def test_password_reset_token_is_one_time(monkeypatch) -> None:
     email = "reset-test@example.com"
-    old_password = "old-password-123"
-    new_password = "new-password-456"
-    client.post("/api/v1/auth/register", json={"email": email, "password": old_password})
+    old_password = "old-password-123!"
+    new_password = "new-password-456!"
+    client.post("/api/v1/auth/register", json={**PROFILE, "email": email, "password": old_password, "confirm_password": old_password})
 
     monkeypatch.setattr(auth, "send_password_reset_email", lambda recipient, reset_url: None)
     request = client.post("/api/v1/auth/forgot-password", json={"email": email})

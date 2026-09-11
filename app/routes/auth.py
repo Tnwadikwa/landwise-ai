@@ -1,4 +1,6 @@
 import logging
+import re
+from datetime import date
 
 from fastapi import APIRouter, Cookie, HTTPException, Response, status
 from pydantic import BaseModel, EmailStr, Field
@@ -28,6 +30,14 @@ class Credentials(BaseModel):
     password: str = Field(..., min_length=8, max_length=128)
 
 
+class Registration(Credentials):
+    first_name: str = Field(..., min_length=1, max_length=80)
+    surname: str = Field(..., min_length=1, max_length=80)
+    date_of_birth: date
+    gender: str = Field(..., pattern="^(Woman|Man|Non-binary|Prefer not to say)$")
+    confirm_password: str = Field(..., min_length=8, max_length=128)
+
+
 class PasswordResetRequest(BaseModel):
     email: EmailStr
 
@@ -46,10 +56,26 @@ class AccountDelete(BaseModel):
     password: str = Field(..., min_length=8, max_length=128)
 
 
+def _validate_strong_password(password: str) -> None:
+    if not (len(password) >= 8 and re.search(r"\d", password) and re.search(r"[^A-Za-z0-9]", password)):
+        raise HTTPException(
+            status_code=422,
+            detail="Password must contain at least 8 characters, one number, and one special character.",
+        )
+
+
 @router.post("/register", status_code=status.HTTP_201_CREATED)
-def register(credentials: Credentials, response: Response) -> dict[str, str]:
+def register(credentials: Registration, response: Response) -> dict[str, str]:
     email = str(credentials.email).strip().lower()
-    if not create_user(email, credentials.password):
+    if credentials.date_of_birth >= date.today():
+        raise HTTPException(status_code=422, detail="Enter a valid date of birth.")
+    _validate_strong_password(credentials.password)
+    if credentials.password != credentials.confirm_password:
+        raise HTTPException(status_code=422, detail="Passwords do not match.")
+    if not create_user(
+        email, credentials.password, credentials.first_name.strip(), credentials.surname.strip(),
+        credentials.date_of_birth, credentials.gender,
+    ):
         raise HTTPException(status_code=409, detail="An account with this email already exists.")
     token = create_session(email, credentials.password)
     response.set_cookie("landwise_session", token, httponly=True, samesite="lax", max_age=604800)
@@ -96,6 +122,7 @@ def change_password_endpoint(
     landwise_session: str | None = Cookie(default=None),
 ) -> dict[str, str]:
     user_id = _require_user_id(landwise_session)
+    _validate_strong_password(request.new_password)
     if not change_password(user_id, request.current_password, request.new_password):
         raise HTTPException(status_code=400, detail="Current password is incorrect.")
     response.delete_cookie("landwise_session")
@@ -143,6 +170,7 @@ def forgot_password(request: PasswordResetRequest) -> dict[str, str]:
 
 @router.post("/reset-password")
 def reset_password_endpoint(request: PasswordReset) -> dict[str, str]:
+    _validate_strong_password(request.password)
     if not reset_password(request.token, request.password):
         raise HTTPException(status_code=400, detail="This reset link is invalid or has expired.")
     return {"message": "Password reset successfully. You can now sign in."}

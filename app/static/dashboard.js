@@ -29,7 +29,7 @@ addPrivateAccountPanel(
   'profile',
   'Profile information',
   'Your Landwise AI account details.',
-  '<div class="settings-grid"><article class="settings-card"><h3>Account email</h3><p id="profile-email">Loading account...</p></article><article class="settings-card"><h3>Account plan</h3><p id="profile-plan">Loading account...</p></article></div>',
+  '<div class="settings-grid"><article class="settings-card"><h3>Name</h3><p id="profile-name">Loading account...</p></article><article class="settings-card"><h3>Account email</h3><p id="profile-email">Loading account...</p></article><article class="settings-card"><h3>Date of birth</h3><p id="profile-date-of-birth">Loading account...</p></article><article class="settings-card"><h3>Gender</h3><p id="profile-gender">Loading account...</p></article><article class="settings-card"><h3>Account plan</h3><p id="profile-plan">Loading account...</p></article></div>',
 );
 addPrivateAccountPanel(
   'help',
@@ -234,7 +234,10 @@ window.addEventListener('projects-updated', loadProjects);
 
   const account = await response.json();
   email.textContent = account.email;
+  document.querySelector('#profile-name').textContent = `${account.first_name} ${account.surname}`.trim() || 'Not provided';
   document.querySelector('#profile-email').textContent = account.email;
+  document.querySelector('#profile-date-of-birth').textContent = account.date_of_birth || 'Not provided';
+  document.querySelector('#profile-gender').textContent = account.gender || 'Not provided';
   document.querySelector('#profile-plan').textContent = account.plan === 'paid' ? 'Landwise AI Plus' : 'Landwise AI Free';
   loadProjects();
   document.querySelector('#logout-button').addEventListener('click', async (event) => {

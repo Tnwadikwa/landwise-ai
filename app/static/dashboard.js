@@ -18,6 +18,13 @@ const accountMenuButton = document.querySelector('#account-menu-button');
 const accountMenuOptions = document.querySelector('#account-menu-options');
 const dashboardMain = document.querySelector('.dashboard-shell');
 
+document.body.classList.remove('is-loading');
+
+const navigateWithTransition = (url) => {
+  document.body.classList.add('is-transitioning');
+  setTimeout(() => { window.location.href = url; }, 150);
+};
+
 const addPrivateAccountPanel = (id, title, description, content) => {
   const panel = document.createElement('section');
   panel.id = id;
@@ -46,7 +53,7 @@ let inactivityTimer;
 
 const signOutForInactivity = async () => {
   await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'same-origin' });
-  window.location.assign('/login.html?reason=inactive');
+  navigateWithTransition('/login.html?reason=inactive');
 };
 
 const resetInactivityTimer = () => {
@@ -229,7 +236,7 @@ window.addEventListener('projects-updated', loadProjects);
 (async () => {
   const response = await fetch('/api/v1/auth/me', { credentials: 'same-origin' });
   if (!response.ok) {
-    window.location.href = '/login.html';
+    navigateWithTransition('/login.html');
     return;
   }
 
@@ -248,11 +255,11 @@ window.addEventListener('projects-updated', loadProjects);
     try {
       await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'same-origin' });
     } finally {
-      window.location.assign('/signed-out.html');
+      navigateWithTransition('/signed-out.html');
     }
   });
 })().catch(() => {
-  window.location.href = '/login.html';
+  navigateWithTransition('/login.html');
 });
 
 document.querySelector('#gender-form').addEventListener('submit', async (event) => {
@@ -273,13 +280,13 @@ document.querySelector('#change-password-form').addEventListener('submit', async
   const body = await response.json();
   if (!response.ok) return showMessage(message, body.detail || 'Password change failed.');
   showMessage(message, body.message, true);
-  setTimeout(() => { window.location.href = '/login.html'; }, 1200);
+  setTimeout(() => { navigateWithTransition('/login.html'); }, 1200);
 });
 
 document.querySelector('#logout-all').addEventListener('click', async () => {
   const response = await fetch('/api/v1/auth/logout-all', { method: 'POST' });
   const body = await response.json();
-  if (response.ok) window.location.href = '/login.html';
+  if (response.ok) navigateWithTransition('/login.html');
   else showMessage(document.querySelector('#account-message'), body.detail || 'Could not sign out all devices.');
 });
 
@@ -288,6 +295,6 @@ document.querySelector('#delete-account').addEventListener('click', async () => 
   if (!password) return;
   const response = await fetch('/api/v1/auth/account', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password }) });
   const body = await response.json();
-  if (response.ok) window.location.href = '/signed-out.html';
+  if (response.ok) navigateWithTransition('/signed-out.html');
   else showMessage(document.querySelector('#account-message'), body.detail || 'Account deletion failed.');
 });

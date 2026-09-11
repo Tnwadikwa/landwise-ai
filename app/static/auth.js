@@ -1,3 +1,12 @@
+document.body.classList.remove('is-loading');
+
+document.body.classList.remove('is-loading');
+
+const navigateWithTransition = (url) => {
+  document.body.classList.add('is-transitioning');
+  setTimeout(() => { window.location.href = url; }, 150);
+};
+
 const form = document.querySelector('#auth-form');
 form.noValidate = true;
 const message = document.querySelector('#auth-message');
@@ -98,11 +107,7 @@ form.addEventListener('submit', async (event) => {
       const detail = body.detail?.[0]?.msg || body.detail || 'Something went wrong.';
       throw new Error(detail.replace('Value error, ', '').replace('value is not a valid email address: ', 'Please enter a valid email address: '));
     }
-    if (mode === 'register') {
-      window.location.href = '/dashboard.html';
-    } else {
-      window.location.href = '/dashboard.html';
-    }
+    navigateWithTransition('/dashboard.html');
   } catch (error) { showMessage(error.message, true); }
   finally { submit.disabled = false; }
 });

@@ -68,6 +68,21 @@ def test_registration_requires_matching_strong_password_and_profile() -> None:
     assert response.json()["detail"] == "Passwords do not match."
 
 
+def test_registration_rejects_incomplete_or_placeholder_profile_details() -> None:
+    invalid_name = client.post(
+        "/api/v1/auth/register",
+        json={**PROFILE, "first_name": "Test", "email": f"placeholder-{uuid4()}@example.com", "password": "password123!", "confirm_password": "password123!"},
+    )
+    assert invalid_name.status_code == 422
+    assert invalid_name.json()["detail"] == "Enter a valid first name."
+
+    missing_gender = client.post(
+        "/api/v1/auth/register",
+        json={key: value for key, value in {**PROFILE, "email": f"incomplete-{uuid4()}@example.com", "password": "password123!", "confirm_password": "password123!"}.items() if key != "gender"},
+    )
+    assert missing_gender.status_code == 422
+
+
 def test_only_gender_can_be_updated_in_profile() -> None:
     client.cookies.clear()
     email = f"gender-update-{uuid4()}@example.com"

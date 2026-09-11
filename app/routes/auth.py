@@ -69,11 +69,21 @@ def _validate_strong_password(password: str) -> None:
         )
 
 
+def _validate_profile(credentials: Registration) -> None:
+    fields = {"First name": credentials.first_name, "Surname": credentials.surname}
+    placeholders = {"na", "n/a", "none", "test", "testing", "unknown", "-"}
+    for label, value in fields.items():
+        normalized = value.strip().lower()
+        if normalized in placeholders or not re.fullmatch(r"[A-Za-z][A-Za-z '-]*", value.strip()):
+            raise HTTPException(status_code=422, detail=f"Enter a valid {label.lower()}.")
+
+
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 def register(credentials: Registration, response: Response) -> dict[str, str]:
     email = str(credentials.email).strip().lower()
     if credentials.date_of_birth >= date.today():
         raise HTTPException(status_code=422, detail="Enter a valid date of birth.")
+    _validate_profile(credentials)
     _validate_strong_password(credentials.password)
     if credentials.password != credentials.confirm_password:
         raise HTTPException(status_code=422, detail="Passwords do not match.")

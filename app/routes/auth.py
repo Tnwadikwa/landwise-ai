@@ -7,6 +7,8 @@ from pydantic import BaseModel, EmailStr, Field
 
 from app.config import settings
 from app.services.auth import (
+    create_pending_registration,
+    resend_pending_registration,
     create_password_reset_token,
     create_session,
     create_user,
@@ -19,8 +21,9 @@ from app.services.auth import (
     login_failure_reason,
     reset_password,
     update_gender,
+    verify_pending_registration,
 )
-from app.services.email import send_password_reset_email
+from app.services.email import send_email_verification_email, send_password_reset_email
 
 router = APIRouter(prefix="/api/v1/auth", tags=["authentication"])
 logger = logging.getLogger(__name__)
@@ -46,6 +49,11 @@ class PasswordResetRequest(BaseModel):
 class PasswordReset(BaseModel):
     token: str = Field(..., min_length=20)
     password: str = Field(..., min_length=8, max_length=128)
+
+
+class EmailVerification(BaseModel):
+    email: EmailStr
+    code: str = Field(..., min_length=6, max_length=6, pattern=r"^\d{6}$")
 
 
 class PasswordChange(BaseModel):
@@ -87,19 +95,35 @@ def register(credentials: Registration, response: Response) -> dict[str, str]:
     _validate_strong_password(credentials.password)
     if credentials.password != credentials.confirm_password:
         raise HTTPException(status_code=422, detail="Passwords do not match.")
-    if not create_user(
-        email, credentials.password, credentials.first_name.strip(), credentials.surname.strip(),
-        credentials.date_of_birth, credentials.gender,
-    ):
+    if not settings.email_verification_required:
+        if not create_user(
+            email, credentials.password, credentials.first_name.strip(), credentials.surname.strip(),
+            credentials.date_of_birth, credentials.gender,
+        ):
+            raise HTTPException(status_code=409, detail="An account with this email already exists.")
+        token = create_session(email, credentials.password)
+        response.set_cookie("landwise_session", token, httponly=True, samesite="lax", max_age=604800)
+        return {"message": "Account created. You are now signed in.", "verification_required": "false"}
+    code = create_pending_registration(email, credentials.password, credentials.first_name.strip(), credentials.surname.strip(), credentials.date_of_birth, credentials.gender)
+    if code is None:
         raise HTTPException(status_code=409, detail="An account with this email already exists.")
-    token = create_session(email, credentials.password)
-    response.set_cookie("landwise_session", token, httponly=True, samesite="lax", max_age=604800)
-    return {"message": "Account created. You are now signed in."}
+    verification_url = f"{settings.site_url}/verify-email.html?email={email}"
+    try:
+        send_email_verification_email(email, verification_url, code)
+    except Exception as error:
+        logger.exception("Verification email delivery failed")
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="We could not send the verification email. Please try again later.") from error
+    return {"message": "Check your email for a six-digit verification code.", "verification_required": "true"}
 
 
 @router.post("/login")
 def login(credentials: Credentials, response: Response) -> dict[str, str]:
-    token = create_session(str(credentials.email).strip().lower(), credentials.password)
+    try:
+        token = create_session(str(credentials.email).strip().lower(), credentials.password)
+    except ValueError as error:
+        if str(error) == "email_not_verified":
+            raise HTTPException(status_code=403, detail="Please verify your email before signing in.") from error
+        raise
     if not token:
         logger.warning("Login rejected for %s: %s", str(credentials.email).lower(), login_failure_reason(str(credentials.email).strip().lower(), credentials.password))
         raise HTTPException(status_code=401, detail="Email or password is incorrect.")
@@ -108,7 +132,7 @@ def login(credentials: Credentials, response: Response) -> dict[str, str]:
 
 
 @router.get("/me")
-def me(landwise_session: str | None = Cookie(default=None)) -> dict[str, str]:
+def me(landwise_session: str | None = Cookie(default=None)) -> dict[str, object]:
     user = get_user(landwise_session)
     if not user:
         raise HTTPException(status_code=401, detail="Sign in required.")
@@ -192,6 +216,30 @@ def forgot_password(request: PasswordResetRequest) -> dict[str, str]:
                 detail="We could not send the recovery email. Please try again later.",
             ) from error
     return {"message": "If an account exists for that email, a password reset link is on its way."}
+
+
+@router.post("/resend-verification")
+def resend_verification(request: PasswordResetRequest) -> dict[str, str]:
+    email = str(request.email).strip().lower()
+    code = resend_pending_registration(email)
+    if code:
+        verification_url = f"{settings.site_url}/verify-email.html?email={email}"
+        try:
+            send_email_verification_email(email, verification_url, code)
+        except Exception as error:
+            logger.exception("Verification email delivery failed")
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="We could not send the verification email. Please try again later.",
+            ) from error
+    return {"message": "If an unverified account exists for that email, a verification link is on its way."}
+
+
+@router.post("/verify-email")
+def verify_email(request: EmailVerification) -> dict[str, str]:
+    if not verify_pending_registration(str(request.email).strip().lower(), request.code):
+        raise HTTPException(status_code=400, detail="This verification link is invalid or expired.")
+    return {"message": "Email verified successfully. You can now sign in."}
 
 
 @router.post("/reset-password")

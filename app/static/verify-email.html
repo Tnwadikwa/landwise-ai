@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Verify your email | Landwise AI</title>
+    <script>document.documentElement.classList.add('js-ready');</script>
+    <link rel="icon" type="image/svg+xml" href="/landwise-favicon.svg" />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body class="auth-page is-loading">
+    <main class="auth-shell">
+      <div class="auth-topbar"><a class="brand" href="/">Landwise<span> AI</span></a><a class="back-link" href="/login.html">← Back to sign in</a></div>
+      <section class="auth-panel">
+        <div class="auth-heading"><p class="eyebrow">Account verification</p><h1>Enter your code.</h1><p>We sent a six-digit code to your email. Enter it below to activate your Landwise AI workspace.</p></div>
+        <form id="verify-form"><label>Email address<input id="verify-email" name="email" type="email" required placeholder="you@company.com" /></label><label>Verification code<input id="verify-code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" minlength="6" maxlength="6" required placeholder="000000" /></label><button class="button button-primary" type="submit" id="verify-submit">Verify email <span>→</span></button></form>
+        <div id="verify-message" class="message" hidden></div>
+      </section>
+    </main>
+    <script src="/verify-email.js"></script>
+  </body>
+</html>

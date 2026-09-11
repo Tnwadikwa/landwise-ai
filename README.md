@@ -34,6 +34,8 @@ Local development falls back to SQLite through `DATABASE_PATH`. Production must 
 
 Document uploads use Supabase Storage when `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `SUPABASE_DOCUMENT_BUCKET` are configured. The local app falls back to `LOCAL_DOCUMENT_PATH` (default: `/tmp/landwise-ai-documents`) when those Supabase variables are empty, so uploads can be tested locally without exposing a service-role key. Configure the Supabase variables in the local shell as well if you want to test the production storage path.
 
+Email verification is enabled in production through `EMAIL_VERIFICATION_REQUIRED=true` and requires the SMTP variables above. The enabled flow keeps signup data pending, emails a six-digit code valid for 15 minutes, and creates the account only after the code is accepted. Local development defaults to `false` so registration remains usable without an email provider; set it to `true` locally with SMTP configured to exercise the same verification flow.
+
 Password recovery requires SMTP environment variables: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, and `SMTP_FROM_EMAIL`. Add these securely in Render before using recovery with customers.
 
 ## Deploy the public site

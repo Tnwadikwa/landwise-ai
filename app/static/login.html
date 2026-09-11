@@ -17,6 +17,7 @@
         <div class="auth-tabs"><button class="active" data-mode="login">Sign in</button><button data-mode="register">Create account</button></div>
         <form id="auth-form"><label>Email address<input name="email" type="email" autocomplete="email" required placeholder="you@company.com" /></label><label>Password<div class="password-field"><input name="password" type="password" minlength="8" autocomplete="current-password" required placeholder="At least 8 characters" /><button type="button" id="toggle-password" aria-label="Show password">Show</button></div></label><a class="recovery-link" href="/forgot-password.html">Forgot password?</a><button class="button button-primary" type="submit" id="auth-submit">Sign in <span>→</span></button></form>
         <div id="auth-message" class="message" hidden></div>
+        <button id="resend-verification" class="text-button" type="button" hidden>Resend verification email</button>
         <p class="auth-footnote">By continuing, you agree to the Landwise AI terms and privacy policy. Estimates are provided as decision support, not professional approval.</p>
       </section>
     </main>

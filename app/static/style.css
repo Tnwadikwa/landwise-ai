@@ -119,6 +119,7 @@ h1, h2, h3, .brand, .metrics strong, .hero-card strong { font-family: 'Space Gro
 .comparison-item strong { font-family: 'Space Grotesk', 'DM Sans', sans-serif; font-size: .98rem; }
 .comparison-metrics { border-top: 1px solid var(--line); padding-top: 12px; }
 .strategic-preview { background: white; margin-top: 20px; }
+.verified-mark { background: var(--soft-green); border: 1px solid #b9cbb8; border-radius: 99px; color: var(--green); font-size: .68rem; font-weight: 800; padding: 4px 8px; white-space: nowrap; }
 .project-summary { margin-top: 26px; }
 @media (max-width: 720px) { .saved-project { padding: 18px; }.saved-project-actions { flex: 1 1 100%; justify-content: flex-start; }.comparison-panel { padding: 18px; }.comparison-heading { align-items: flex-start; flex-direction: column; gap: 5px; } }
 

@@ -34,7 +34,7 @@ addPrivateAccountPanel(
   'profile',
   'Profile information',
   'Your Landwise AI account details.',
-  '<div class="settings-grid"><article class="settings-card"><h3>Name</h3><p id="profile-name">Loading account...</p></article><article class="settings-card"><h3>Account email</h3><p id="profile-email">Loading account...</p></article><article class="settings-card"><h3>Date of birth</h3><p id="profile-date-of-birth">Loading account...</p></article><form id="gender-form" class="settings-card"><h3>Gender</h3><label><span class="sr-only">Gender</span><select id="profile-gender" name="gender"><option>Woman</option><option>Man</option><option>Non-binary</option><option>Prefer not to say</option></select></label><button class="text-button" type="submit">Update gender</button><p id="gender-message" class="message" hidden></p></form><article class="settings-card"><h3>Account plan</h3><p id="profile-plan">Loading account...</p></article></div>',
+  '<div class="settings-grid"><article class="settings-card"><h3>Name</h3><p id="profile-name">Loading account...</p></article><article class="settings-card"><h3>Account email</h3><p><span id="profile-email">Loading account...</span> <span id="profile-email-verified" class="verified-mark" hidden>Verified</span></p></article><article class="settings-card"><h3>Date of birth</h3><p id="profile-date-of-birth">Loading account...</p></article><form id="gender-form" class="settings-card"><h3>Gender</h3><label><span class="sr-only">Gender</span><select id="profile-gender" name="gender"><option>Woman</option><option>Man</option><option>Non-binary</option><option>Prefer not to say</option></select></label><button class="text-button" type="submit">Update gender</button><p id="gender-message" class="message" hidden></p></form><article class="settings-card"><h3>Account plan</h3><p id="profile-plan">Loading account...</p></article></div>',
 );
 addPrivateAccountPanel(
   'help',
@@ -260,6 +260,7 @@ window.addEventListener('projects-updated', loadProjects);
   email.textContent = account.email;
   document.querySelector('#profile-name').textContent = `${account.first_name} ${account.surname}`.trim() || 'Not provided';
   document.querySelector('#profile-email').textContent = account.email;
+  document.querySelector('#profile-email-verified').hidden = !account.email_verified;
   document.querySelector('#profile-date-of-birth').textContent = account.date_of_birth || 'Not provided';
   document.querySelector('#profile-gender').value = account.gender || 'Prefer not to say';
   document.querySelector('#profile-plan').textContent = account.plan === 'paid' ? 'Landwise AI Plus' : 'Landwise AI Free';

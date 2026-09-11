@@ -10,6 +10,7 @@ const navigateWithTransition = (url) => {
 const form = document.querySelector('#auth-form');
 form.noValidate = true;
 const message = document.querySelector('#auth-message');
+const resendVerification = document.querySelector('#resend-verification');
 const submit = document.querySelector('#auth-submit');
 const passwordInput = document.querySelector('[name="password"]');
 const togglePassword = document.querySelector('#toggle-password');
@@ -72,6 +73,20 @@ const showMessage = (text, isError = false) => {
   message.hidden = false;
 };
 
+resendVerification.addEventListener('click', async () => {
+  resendVerification.disabled = true;
+  try {
+    const response = await fetch('/api/v1/auth/resend-verification', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: form.querySelector('[name="email"]').value }),
+    });
+    const body = await response.json();
+    showMessage(body.detail || body.message || 'We could not resend the verification email.', !response.ok);
+  } finally {
+    resendVerification.disabled = false;
+  }
+});
+
 const setMode = (nextMode) => {
   mode = nextMode;
   document.querySelectorAll('[data-mode]').forEach((item) => item.classList.toggle('active', item.dataset.mode === mode));
@@ -79,6 +94,7 @@ const setMode = (nextMode) => {
   form.querySelector('[name=password]').autocomplete = mode === 'login' ? 'current-password' : 'new-password';
   setRegisterFields(mode === 'register');
   message.hidden = true;
+  resendVerification.hidden = true;
 };
 
 document.querySelectorAll('[data-mode]').forEach((tab) => tab.addEventListener('click', () => setMode(tab.dataset.mode)));
@@ -107,8 +123,19 @@ form.addEventListener('submit', async (event) => {
       const detail = body.detail?.[0]?.msg || body.detail || 'Something went wrong.';
       throw new Error(detail.replace('Value error, ', '').replace('value is not a valid email address: ', 'Please enter a valid email address: '));
     }
-    navigateWithTransition('/dashboard.html');
-  } catch (error) { showMessage(error.message, true); }
+    if (mode === 'register') {
+      if (body.verification_required === 'true') {
+        window.location.href = `/verify-email.html?email=${encodeURIComponent(payload.email)}`;
+      } else {
+        navigateWithTransition('/dashboard.html');
+      }
+    } else {
+      navigateWithTransition('/dashboard.html');
+    }
+  } catch (error) {
+    showMessage(error.message, true);
+    resendVerification.hidden = !(mode === 'login' && error.message.toLowerCase().includes('verify your email'));
+  }
   finally { submit.disabled = false; }
 });
 

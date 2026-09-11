@@ -16,6 +16,7 @@ class Settings:
     smtp_username: str | None = os.getenv("SMTP_USERNAME", "").strip() or None
     smtp_password: str | None = os.getenv("SMTP_PASSWORD", "").strip() or None
     smtp_from_email: str | None = os.getenv("SMTP_FROM_EMAIL", "").strip() or None
+    email_verification_required: bool = os.getenv("EMAIL_VERIFICATION_REQUIRED", "false").lower() == "true"
     paid_account_emails: tuple[str, ...] = tuple(
         email.strip().lower() for email in os.getenv("PAID_ACCOUNT_EMAILS", "").split(",") if email.strip()
     )

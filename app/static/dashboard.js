@@ -122,7 +122,18 @@ const renderProjects = (projects) => {
     viewDocuments.addEventListener('click', async () => {
       viewDocuments.disabled = true;
       viewDocuments.textContent = 'Loading documents...';
-      const response = await fetch(`/api/v1/projects/${project.id}/documents`);
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 10000);
+      let response;
+      try {
+        response = await fetch(`/api/v1/projects/${project.id}/documents`, { signal: controller.signal });
+      } catch {
+        viewDocuments.textContent = 'Document list timed out';
+        viewDocuments.disabled = false;
+        return;
+      } finally {
+        window.clearTimeout(timeout);
+      }
       if (!response.ok) {
         viewDocuments.textContent = 'Could not load documents';
         viewDocuments.disabled = false;

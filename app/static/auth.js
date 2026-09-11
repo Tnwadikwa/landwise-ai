@@ -1,4 +1,5 @@
 const form = document.querySelector('#auth-form');
+form.noValidate = true;
 const message = document.querySelector('#auth-message');
 const submit = document.querySelector('#auth-submit');
 const passwordInput = document.querySelector('[name="password"]');

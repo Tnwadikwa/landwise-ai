@@ -174,6 +174,11 @@ def test_signed_in_user_can_save_list_download_and_delete_project(monkeypatch: p
     )
     assert downloaded_document.status_code == 307
     assert downloaded_document.headers["location"].startswith("https://storage.example.test/")
+    pdf_document = client.get(
+        f"/api/v1/projects/{project_id}/documents/{document_id}/pdf", follow_redirects=False,
+    )
+    assert pdf_document.status_code == 307
+    assert pdf_document.headers["location"].startswith("https://storage.example.test/")
     review = client.post(
         f"/api/v1/projects/{project_id}/professional-review",
         json={"note": "Please review the title and survey plan."},

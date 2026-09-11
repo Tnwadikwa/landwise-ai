@@ -94,7 +94,7 @@ const renderProjects = (projects) => {
     download.textContent = 'Download PDF';
     const upload = document.createElement('button');
     upload.className = 'text-button';
-    upload.textContent = `Documents (${project.document_count})`;
+    upload.textContent = 'Upload document';
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = '.pdf,image/jpeg,image/png';
@@ -114,6 +114,53 @@ const renderProjects = (projects) => {
         upload.textContent = body.detail || 'Upload failed';
         upload.disabled = false;
       }
+    });
+    const viewDocuments = document.createElement('button');
+    viewDocuments.className = 'text-button';
+    viewDocuments.textContent = `View documents (${project.document_count})`;
+    viewDocuments.disabled = project.document_count === 0;
+    viewDocuments.addEventListener('click', async () => {
+      viewDocuments.disabled = true;
+      const response = await fetch(`/api/v1/projects/${project.id}/documents`);
+      if (!response.ok) {
+        viewDocuments.disabled = false;
+        return;
+      }
+      const documents = await response.json();
+      const existingList = card.querySelector('.document-list');
+      if (existingList) {
+        existingList.remove();
+        viewDocuments.disabled = false;
+        return;
+      }
+      const documentList = document.createElement('div');
+      documentList.className = 'document-list';
+      documents.forEach((document) => {
+        const row = document.createElement('div');
+        row.className = 'document-row';
+        const name = document.createElement('span');
+        name.textContent = document.name;
+        const actions = document.createElement('div');
+        const open = document.createElement('a');
+        open.className = 'text-button';
+        open.href = `/api/v1/projects/${project.id}/documents/${document.id}`;
+        open.target = '_blank';
+        open.rel = 'noreferrer';
+        open.textContent = 'Open';
+        const pdf = document.createElement('a');
+        pdf.className = 'pdf-document-button';
+        pdf.href = `/api/v1/projects/${project.id}/documents/${document.id}/pdf`;
+        pdf.target = '_blank';
+        pdf.rel = 'noreferrer';
+        pdf.textContent = 'PDF';
+        pdf.title = 'Open as PDF';
+        pdf.setAttribute('aria-label', `Open ${document.name} as PDF`);
+        actions.append(open, pdf);
+        row.append(name, actions);
+        documentList.append(row);
+      });
+      card.append(documentList);
+      viewDocuments.disabled = false;
     });
     const review = document.createElement('button');
     review.className = 'text-button';
@@ -138,7 +185,7 @@ const renderProjects = (projects) => {
       if (response.ok) loadProjects();
       else remove.disabled = false;
     });
-    actions.append(compare, fileInput, upload, review, download, remove);
+    actions.append(compare, fileInput, upload, viewDocuments, review, download, remove);
     card.append(details, actions);
     projectsList.append(card);
   });

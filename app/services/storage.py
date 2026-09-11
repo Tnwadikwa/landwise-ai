@@ -53,6 +53,19 @@ def create_private_download_url(storage_key: str) -> str:
     return signed_path if signed_path.startswith("http") else f"{settings.supabase_url}{signed_path}"
 
 
+def download_private_document(storage_key: str) -> bytes:
+    url = (
+        f"{settings.supabase_url}/storage/v1/object/"
+        f"{quote(settings.supabase_document_bucket or '', safe='')}/{quote(storage_key, safe='/')}"
+    )
+    response = httpx.get(url, headers=_storage_headers(), timeout=15)
+    try:
+        response.raise_for_status()
+    except httpx.HTTPStatusError as error:
+        raise RuntimeError("The private document could not be retrieved.") from error
+    return response.content
+
+
 def delete_private_documents(storage_keys: list[str]) -> None:
     if not storage_keys:
         return

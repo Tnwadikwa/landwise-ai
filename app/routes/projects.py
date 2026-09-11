@@ -11,6 +11,8 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+from reportlab.pdfgen import canvas
+from reportlab.lib.utils import ImageReader
 
 from app.schemas import FeasibilityReport, PlotDetails
 from app.config import settings
@@ -20,7 +22,8 @@ from app.services.projects import (
     get_review_request, list_documents, list_projects,
 )
 from app.services.storage import (
-    create_private_download_url, delete_private_documents, upload_private_document,
+    create_private_download_url, delete_private_documents, download_private_document,
+    upload_private_document,
 )
 
 router = APIRouter(prefix="/api/v1/projects", tags=["projects"])
@@ -151,6 +154,45 @@ def download_project_document(
         return RedirectResponse(create_private_download_url(document.stored_name), status_code=307)
     except RuntimeError as error:
         raise HTTPException(status_code=503, detail=str(error)) from error
+
+
+@router.get("/{project_id}/documents/{document_id}/pdf")
+def view_project_document_as_pdf(
+    project_id: str, document_id: str, landwise_session: str | None = Cookie(default=None),
+) -> Response:
+    user_id = _authenticated_user_id(landwise_session)
+    if not get_project(user_id, project_id):
+        raise HTTPException(status_code=404, detail="Project not found.")
+    document = next((item for item in list_documents(project_id) if item.id == document_id), None)
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found.")
+    if document.content_type == "application/pdf":
+        try:
+            return RedirectResponse(create_private_download_url(document.stored_name), status_code=307)
+        except RuntimeError as error:
+            raise HTTPException(status_code=503, detail=str(error)) from error
+
+    try:
+        source = download_private_document(document.stored_name)
+        image = ImageReader(io.BytesIO(source))
+        image_width, image_height = image.getSize()
+    except (RuntimeError, OSError) as error:
+        raise HTTPException(status_code=503, detail="The image could not be converted to PDF.") from error
+
+    page_width, page_height = A4
+    margin = 18 * mm
+    scale = min((page_width - 2 * margin) / image_width, (page_height - 2 * margin) / image_height)
+    render_width, render_height = image_width * scale, image_height * scale
+    buffer = io.BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=A4)
+    pdf.drawImage(image, (page_width - render_width) / 2, (page_height - render_height) / 2, render_width, render_height)
+    pdf.showPage()
+    pdf.save()
+    buffer.seek(0)
+    filename = f"{document.original_name.rsplit('.', 1)[0]}.pdf"
+    return StreamingResponse(
+        buffer, media_type="application/pdf", headers={"Content-Disposition": f'inline; filename="{filename}"'},
+    )
 
 
 @router.post("/{project_id}/professional-review", status_code=status.HTTP_201_CREATED)

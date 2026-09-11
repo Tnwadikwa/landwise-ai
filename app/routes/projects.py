@@ -154,7 +154,13 @@ def remove_project_document(
     try:
         delete_private_document(document.stored_name)
     except (RuntimeError, OSError) as error:
-        raise HTTPException(status_code=503, detail=str(error)) from error
+        return HTMLResponse(
+            "<!doctype html><title>Document deletion unavailable | Landwise AI</title>"
+            "<main><h1>Document deletion is temporarily unavailable.</h1>"
+            "<p>Your document has not been deleted. Please try again shortly.</p>"
+            f'<a href="/api/v1/projects/{project_id}/documents/view">Back to documents</a></main>',
+            status_code=503,
+        )
     if not delete_document(project_id, document_id):
         raise HTTPException(status_code=404, detail="Document not found.")
     return RedirectResponse(f"/api/v1/projects/{project_id}/documents/view", status_code=303)

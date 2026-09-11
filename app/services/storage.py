@@ -76,7 +76,7 @@ def delete_private_documents(storage_keys: list[str]) -> None:
     try:
         response = httpx.delete(url, headers=_storage_headers(), json={"prefixes": storage_keys}, timeout=15)
         response.raise_for_status()
-    except httpx.HTTPError as error:
+    except Exception as error:
         logger.warning("Supabase document deletion failed: %s", error)
         raise RuntimeError("The private documents could not be deleted.") from error
 

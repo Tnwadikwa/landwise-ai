@@ -3,6 +3,7 @@ const projectsList = document.querySelector('#saved-projects-list');
 const projectCount = document.querySelector('#project-count');
 const planBadge = document.querySelector('#plan-badge');
 const accountMenu = document.querySelector('.account-menu');
+let currentPlan = 'free';
 document.querySelector('.workspace-status')?.remove();
 document.querySelectorAll('.plan-badge').forEach((badge) => badge.remove());
 document.querySelector('.workspace-tabs a[href="#premium"]').textContent = 'Landwise AI Plus';
@@ -234,7 +235,7 @@ const renderComparison = (projects) => {
   selected.slice(0, 3).forEach((project) => {
     const item = document.createElement('article');
     item.className = 'comparison-item';
-    item.innerHTML = `<strong>${project.name}</strong><span>${project.asset_type}</span><b>${project.estimated_roi_percentage}% ROI</b><small>${formatNaira(project.projected_gross_revenue_ngn)} revenue</small>`;
+    item.innerHTML = `<strong>${project.name}</strong><span>${project.asset_type} · ${Number(project.plot_size_sqm).toLocaleString()} sqm · ${project.estimated_units} units</span><b>${project.estimated_roi_percentage}% ROI</b><small>${formatNaira(project.projected_gross_revenue_ngn)} projected revenue</small>${currentPlan === 'paid' ? `<div class="comparison-metrics"><small><em>Investment</em>${formatNaira(project.total_investment_ngn)}</small><small><em>Est. profit</em>${formatNaira(project.estimated_profit_ngn)}</small><small><em>Confidence</em>${project.confidence_level}</small><small><em>Evidence</em>${project.document_count} document${project.document_count === 1 ? '' : 's'}</small><small><em>Review</em>${project.review_status ? 'Requested' : 'Not requested'}</small></div>` : ''}`;
     results.append(item);
   });
 };
@@ -254,6 +255,8 @@ window.addEventListener('projects-updated', loadProjects);
   }
 
   const account = await response.json();
+  currentPlan = account.plan;
+  document.querySelector('#strategic-preview').hidden = currentPlan === 'paid';
   email.textContent = account.email;
   document.querySelector('#profile-name').textContent = `${account.first_name} ${account.surname}`.trim() || 'Not provided';
   document.querySelector('#profile-email').textContent = account.email;

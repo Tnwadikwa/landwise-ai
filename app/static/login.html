@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body class="auth-page is-loading">
+    <div id="page-transition" class="page-transition" aria-hidden="true"></div>
     <main class="auth-shell">
       <div class="auth-topbar"><a class="brand" href="/">Landwise<span> AI</span></a><a class="back-link" href="/">← Back to homepage</a></div>
       <section class="auth-panel">
@@ -19,6 +20,15 @@
         <p class="auth-footnote">By continuing, you agree to use Landwise AI estimates as decision support, not professional approval.</p>
       </section>
     </main>
+    <script>
+      const transitionOverlay = document.getElementById('page-transition');
+      window.addEventListener('load', () => {
+        requestAnimationFrame(() => {
+          document.body.classList.remove('is-loading');
+          transitionOverlay?.classList.add('is-hidden');
+        });
+      });
+    </script>
     <script src="/auth.js"></script>
   </body>
 </html>

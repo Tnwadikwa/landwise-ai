@@ -57,5 +57,22 @@
 
     </main>
     <footer><span>Landwise AI</span><span>Private workspace · Estimates made clearer · Decisions made smarter</span></footer>
+    <div id="page-transition" class="page-transition" aria-hidden="true"></div>
+    <script>
+      const transitionOverlay = document.getElementById('page-transition');
+      document.addEventListener('click', (event) => {
+        const anchor = event.target.closest('a[href="/login.html"]');
+        const registerAnchor = event.target.closest('a[href="/login.html?mode=register"]');
+        const target = anchor || registerAnchor;
+        if (!target) return;
+        event.preventDefault();
+        document.body.classList.add('page-transitioning');
+        transitionOverlay?.classList.remove('is-hidden');
+        setTimeout(() => { window.location.href = target.getAttribute('href'); }, 150);
+      });
+      window.addEventListener('load', () => {
+        requestAnimationFrame(() => transitionOverlay?.classList.add('is-hidden'));
+      });
+    </script>
   </body>
 </html>

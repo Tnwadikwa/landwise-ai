@@ -7,11 +7,7 @@ document.querySelector('.workspace-status')?.remove();
 document.querySelectorAll('.plan-badge').forEach((badge) => badge.remove());
 document.querySelector('.workspace-tabs a[href="#premium"]').textContent = 'Landwise AI Plus';
 document.querySelector('#premium .eyebrow').textContent = '04 · Landwise AI Plus';
-document.querySelector('.workspace-tabs a[href="#security"]')?.remove();
 document.querySelector('.secure-note')?.remove();
-document.querySelectorAll('.premium-card button').forEach((button) => {
-  button.textContent = 'Available on Landwise AI Plus';
-});
 accountMenu.innerHTML = '<span id="user-email">Loading account...</span><div class="account-popover"><button id="account-menu-button" class="account-menu-button" type="button" aria-label="Open account menu" aria-expanded="false" aria-controls="account-menu-options"><span></span><span></span><span></span></button><div id="account-menu-options" class="account-menu-options" hidden><button type="button" data-account-section="profile">Profile information</button><button type="button" data-account-section="security">Account security</button><button type="button" data-account-section="help">Help</button><hr /><button id="logout-button" class="account-signout" type="button">Sign out</button></div></div>';
 email = document.querySelector('#user-email');
 const accountMenuButton = document.querySelector('#account-menu-button');
@@ -47,6 +43,7 @@ addPrivateAccountPanel(
 );
 const workspaceTabs = [...document.querySelectorAll('.workspace-tabs a')];
 const workspacePanels = [...document.querySelectorAll('.workspace-panel')];
+const homeOnlyPanels = [...document.querySelectorAll('.home-only')];
 const workspaceLinks = [...document.querySelectorAll('a[href^="#"]')];
 const inactivityLimit = 60 * 60 * 1000;
 let inactivityTimer;
@@ -72,12 +69,27 @@ const showMessage = (element, text, success = false) => {
   element.hidden = false;
 };
 
+const updateHomeSummary = (projects) => {
+  const reviewedProjects = projects.filter((project) => project.review_status);
+  const readyProjects = projects.filter((project) => ['high', 'strong'].includes(String(project.confidence_level).toLowerCase()));
+  const latestProject = projects[0];
+  document.querySelector('#home-project-count').textContent = String(projects.length);
+  document.querySelector('#home-readiness').textContent = projects.length ? `${readyProjects.length}/${projects.length}` : 'Not rated';
+  document.querySelector('#home-review-count').textContent = String(reviewedProjects.length);
+  document.querySelector('#home-confidence').textContent = latestProject?.confidence_level || 'Not rated';
+  document.querySelector('#home-next-step').textContent = reviewedProjects.length ? 'Await professional feedback' : projects.length ? 'Validate assumptions' : 'Create first analysis';
+  document.querySelector('#home-stakeholder-value').textContent = readyProjects.length ? 'Ready for discussion' : 'Build a decision brief';
+};
+
 const showWorkspaceSection = (sectionId) => {
   const validIds = ['home', ...workspacePanels.map((panel) => panel.id)];
   const targetId = validIds.includes(sectionId) ? sectionId : 'home';
   document.querySelector('#home').classList.toggle('is-hidden', targetId !== 'home');
   workspacePanels.forEach((panel) => {
     panel.classList.toggle('is-hidden', panel.id !== targetId);
+  });
+  homeOnlyPanels.forEach((panel) => {
+    panel.classList.toggle('is-hidden', targetId !== 'home');
   });
   workspaceTabs.forEach((tab) => {
     tab.classList.toggle('active', tab.getAttribute('href') === `#${targetId}`);
@@ -121,6 +133,7 @@ window.addEventListener('hashchange', () => showWorkspaceSection(window.location
 showWorkspaceSection(window.location.hash.slice(1) || 'home');
 
 const renderProjects = (projects) => {
+  updateHomeSummary(projects);
   projectCount.textContent = projects.length;
   projectsList.replaceChildren();
   if (!projects.length) {

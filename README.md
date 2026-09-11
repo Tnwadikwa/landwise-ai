@@ -32,6 +32,8 @@ The website now includes email/password registration at `/login.html` and a sign
 
 Local development falls back to SQLite through `DATABASE_PATH`. Production must set `DATABASE_URL` to a managed PostgreSQL connection string because Render's default filesystem is temporary. Create a PostgreSQL database with Render, Supabase, Neon, or another provider, then add its private connection URL to the Web Service environment variables. Existing SQLite accounts will need to be recreated or migrated.
 
+Document uploads use Supabase Storage when `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `SUPABASE_DOCUMENT_BUCKET` are configured. The local app falls back to `LOCAL_DOCUMENT_PATH` (default: `/tmp/landwise-ai-documents`) when those Supabase variables are empty, so uploads can be tested locally without exposing a service-role key. Configure the Supabase variables in the local shell as well if you want to test the production storage path.
+
 Password recovery requires SMTP environment variables: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, and `SMTP_FROM_EMAIL`. Add these securely in Render before using recovery with customers.
 
 ## Deploy the public site

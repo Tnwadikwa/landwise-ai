@@ -10,6 +10,7 @@ class Settings:
     supabase_url: str | None = os.getenv("SUPABASE_URL", "").strip() or None
     supabase_service_role_key: str | None = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip() or None
     supabase_document_bucket: str | None = os.getenv("SUPABASE_DOCUMENT_BUCKET", "").strip() or None
+    local_document_path: str = os.getenv("LOCAL_DOCUMENT_PATH", "/tmp/landwise-ai-documents")
     smtp_host: str | None = os.getenv("SMTP_HOST", "").strip() or None
     smtp_port: int = int(os.getenv("SMTP_PORT", "587"))
     smtp_username: str | None = os.getenv("SMTP_USERNAME", "").strip() or None

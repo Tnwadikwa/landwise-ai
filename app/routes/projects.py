@@ -233,7 +233,13 @@ def download_project_document(
     try:
         return RedirectResponse(create_private_download_url(document.stored_name), status_code=307)
     except RuntimeError as error:
-        raise HTTPException(status_code=503, detail=str(error)) from error
+        if "Local documents" not in str(error):
+            raise HTTPException(status_code=503, detail=str(error)) from error
+        return StreamingResponse(
+            io.BytesIO(download_private_document(document.stored_name)),
+            media_type=document.content_type,
+            headers={"Content-Disposition": f'attachment; filename="{document.original_name}"'},
+        )
 
 
 @router.get("/{project_id}/documents/{document_id}/pdf")

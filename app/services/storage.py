@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from urllib.parse import quote
 
 import httpx
@@ -6,6 +7,18 @@ import httpx
 from app.config import settings
 
 logger = logging.getLogger(__name__)
+
+
+def uses_supabase_storage() -> bool:
+    return bool(settings.supabase_url and settings.supabase_service_role_key and settings.supabase_document_bucket)
+
+
+def _local_document_path(storage_key: str) -> Path:
+    root = Path(settings.local_document_path).resolve()
+    path = (root / storage_key).resolve()
+    if root != path and root not in path.parents:
+        raise RuntimeError("The local document path is invalid.")
+    return path
 
 
 def _storage_headers() -> dict[str, str]:
@@ -18,6 +31,11 @@ def _storage_headers() -> dict[str, str]:
 
 
 def upload_private_document(storage_key: str, content: bytes, content_type: str) -> None:
+    if not uses_supabase_storage():
+        path = _local_document_path(storage_key)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(content)
+        return
     headers = _storage_headers()
     url = (
         f"{settings.supabase_url}/storage/v1/object/"
@@ -42,6 +60,8 @@ def upload_private_document(storage_key: str, content: bytes, content_type: str)
 
 
 def create_private_download_url(storage_key: str) -> str:
+    if not uses_supabase_storage():
+        raise RuntimeError("Local documents are served directly by the application.")
     headers = _storage_headers()
     url = (
         f"{settings.supabase_url}/storage/v1/object/sign/"
@@ -57,6 +77,11 @@ def create_private_download_url(storage_key: str) -> str:
 
 
 def download_private_document(storage_key: str) -> bytes:
+    if not uses_supabase_storage():
+        try:
+            return _local_document_path(storage_key).read_bytes()
+        except OSError as error:
+            raise RuntimeError("The local document could not be retrieved.") from error
     url = (
         f"{settings.supabase_url}/storage/v1/object/"
         f"{quote(settings.supabase_document_bucket or '', safe='')}/{quote(storage_key, safe='/')}"
@@ -71,6 +96,14 @@ def download_private_document(storage_key: str) -> bytes:
 
 def delete_private_documents(storage_keys: list[str]) -> None:
     if not storage_keys:
+        return
+    if not uses_supabase_storage():
+        for storage_key in storage_keys:
+            try:
+                _local_document_path(storage_key).unlink(missing_ok=True)
+            except OSError as error:
+                logger.warning("Local document deletion failed: %s", error)
+                raise RuntimeError("The local documents could not be deleted.") from error
         return
     url = f"{settings.supabase_url}/storage/v1/object/{quote(settings.supabase_document_bucket or '', safe='')}"
     try:

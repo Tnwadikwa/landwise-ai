@@ -18,6 +18,7 @@ from app.services.auth import (
     get_user,
     login_failure_reason,
     reset_password,
+    update_gender,
 )
 from app.services.email import send_password_reset_email
 
@@ -50,6 +51,10 @@ class PasswordReset(BaseModel):
 class PasswordChange(BaseModel):
     current_password: str = Field(..., min_length=8, max_length=128)
     new_password: str = Field(..., min_length=8, max_length=128)
+
+
+class GenderUpdate(BaseModel):
+    gender: str = Field(..., pattern="^(Woman|Man|Non-binary|Prefer not to say)$")
 
 
 class AccountDelete(BaseModel):
@@ -127,6 +132,17 @@ def change_password_endpoint(
         raise HTTPException(status_code=400, detail="Current password is incorrect.")
     response.delete_cookie("landwise_session")
     return {"message": "Password changed. Please sign in again."}
+
+
+@router.patch("/profile/gender")
+def update_profile_gender(
+    request: GenderUpdate,
+    landwise_session: str | None = Cookie(default=None),
+) -> dict[str, str]:
+    user_id = _require_user_id(landwise_session)
+    if not update_gender(user_id, request.gender):
+        raise HTTPException(status_code=404, detail="Account not found.")
+    return {"gender": request.gender, "message": "Gender updated."}
 
 
 @router.post("/logout-all")

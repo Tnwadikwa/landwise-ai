@@ -18,8 +18,8 @@ const setRegisterFields = (visible) => {
   confirmPasswordField.hidden = !visible;
   confirmPasswordField.querySelector('input').required = visible;
   recoveryLink.hidden = visible;
+  if (visible && !profileFields.isConnected) form.querySelector('[name="email"]').closest('label').before(profileFields);
   if (visible && !confirmPasswordField.isConnected) passwordInput.closest('label').after(confirmPasswordField);
-  if (visible && !profileFields.isConnected) recoveryLink.before(profileFields);
 };
 
 const updatePasswordMatch = () => {

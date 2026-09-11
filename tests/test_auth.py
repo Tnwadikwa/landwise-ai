@@ -66,3 +66,20 @@ def test_registration_requires_matching_strong_password_and_profile() -> None:
     )
     assert response.status_code == 422
     assert response.json()["detail"] == "Passwords do not match."
+
+
+def test_only_gender_can_be_updated_in_profile() -> None:
+    client.cookies.clear()
+    email = f"gender-update-{uuid4()}@example.com"
+    password = "profile-password1!"
+    assert client.post(
+        "/api/v1/auth/register",
+        json={**PROFILE, "email": email, "password": password, "confirm_password": password},
+    ).status_code == 201
+
+    updated = client.patch("/api/v1/auth/profile/gender", json={"gender": "Non-binary"})
+    assert updated.status_code == 200
+    account = client.get("/api/v1/auth/me").json()
+    assert account["gender"] == "Non-binary"
+    assert account["first_name"] == "Ada"
+    assert account["surname"] == "Okafor"

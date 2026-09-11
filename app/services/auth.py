@@ -196,6 +196,16 @@ def change_password(user_id: int, current_password: str, new_password: str) -> b
         return True
 
 
+def update_gender(user_id: int, gender: str) -> bool:
+    with SessionLocal() as database:
+        user = database.get(User, user_id)
+        if not user:
+            return False
+        user.gender = gender
+        database.commit()
+        return True
+
+
 def delete_user_account(user_id: int) -> bool:
     with SessionLocal() as database:
         user = database.get(User, user_id)

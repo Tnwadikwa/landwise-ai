@@ -29,7 +29,7 @@ addPrivateAccountPanel(
   'profile',
   'Profile information',
   'Your Landwise AI account details.',
-  '<div class="settings-grid"><article class="settings-card"><h3>Name</h3><p id="profile-name">Loading account...</p></article><article class="settings-card"><h3>Account email</h3><p id="profile-email">Loading account...</p></article><article class="settings-card"><h3>Date of birth</h3><p id="profile-date-of-birth">Loading account...</p></article><article class="settings-card"><h3>Gender</h3><p id="profile-gender">Loading account...</p></article><article class="settings-card"><h3>Account plan</h3><p id="profile-plan">Loading account...</p></article></div>',
+  '<div class="settings-grid"><article class="settings-card"><h3>Name</h3><p id="profile-name">Loading account...</p></article><article class="settings-card"><h3>Account email</h3><p id="profile-email">Loading account...</p></article><article class="settings-card"><h3>Date of birth</h3><p id="profile-date-of-birth">Loading account...</p></article><form id="gender-form" class="settings-card"><h3>Gender</h3><label><span class="sr-only">Gender</span><select id="profile-gender" name="gender"><option>Woman</option><option>Man</option><option>Non-binary</option><option>Prefer not to say</option></select></label><button class="text-button" type="submit">Update gender</button><p id="gender-message" class="message" hidden></p></form><article class="settings-card"><h3>Account plan</h3><p id="profile-plan">Loading account...</p></article></div>',
 );
 addPrivateAccountPanel(
   'help',
@@ -237,7 +237,7 @@ window.addEventListener('projects-updated', loadProjects);
   document.querySelector('#profile-name').textContent = `${account.first_name} ${account.surname}`.trim() || 'Not provided';
   document.querySelector('#profile-email').textContent = account.email;
   document.querySelector('#profile-date-of-birth').textContent = account.date_of_birth || 'Not provided';
-  document.querySelector('#profile-gender').textContent = account.gender || 'Not provided';
+  document.querySelector('#profile-gender').value = account.gender || 'Prefer not to say';
   document.querySelector('#profile-plan').textContent = account.plan === 'paid' ? 'Landwise AI Plus' : 'Landwise AI Free';
   loadProjects();
   document.querySelector('#logout-button').addEventListener('click', async (event) => {
@@ -252,6 +252,17 @@ window.addEventListener('projects-updated', loadProjects);
   });
 })().catch(() => {
   window.location.href = '/login.html';
+});
+
+document.querySelector('#gender-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const message = document.querySelector('#gender-message');
+  const response = await fetch('/api/v1/auth/profile/gender', {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(Object.fromEntries(new FormData(event.currentTarget))),
+  });
+  const body = await response.json();
+  showMessage(message, response.ok ? body.message : body.detail || 'Could not update gender.', response.ok);
 });
 
 document.querySelector('#change-password-form').addEventListener('submit', async (event) => {

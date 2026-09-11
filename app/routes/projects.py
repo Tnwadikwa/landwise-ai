@@ -128,7 +128,7 @@ def view_project_documents(
     rows = "".join(
         f'<li><span>{escape(document.original_name)}</span>'
         f'<a href="/api/v1/projects/{project_id}/documents/{document.id}" target="_blank">Web</a>'
-        f'<a class="pdf" href="/api/v1/projects/{project_id}/documents/{document.id}/pdf" target="_blank">PDF</a></li>'
+        f'<a class="pdf" href="/api/v1/projects/{project_id}/documents/{document.id}/pdf">PDF</a></li>'
         for document in list_documents(project_id)
     ) or "<li>No documents have been uploaded for this project.</li>"
     return HTMLResponse(
@@ -193,7 +193,7 @@ def view_project_document_as_pdf(
         if document.content_type == "application/pdf":
             return StreamingResponse(
                 io.BytesIO(source), media_type="application/pdf",
-                headers={"Content-Disposition": f'inline; filename="{document.original_name}"'},
+                headers={"Content-Disposition": f'attachment; filename="{document.original_name}"'},
             )
         image = ImageReader(io.BytesIO(source))
         image_width, image_height = image.getSize()
@@ -212,7 +212,7 @@ def view_project_document_as_pdf(
     buffer.seek(0)
     filename = f"{document.original_name.rsplit('.', 1)[0]}.pdf"
     return StreamingResponse(
-        buffer, media_type="application/pdf", headers={"Content-Disposition": f'inline; filename="{filename}"'},
+        buffer, media_type="application/pdf", headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
 
 

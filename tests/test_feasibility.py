@@ -212,6 +212,7 @@ def test_signed_in_user_can_save_list_download_and_delete_project(monkeypatch: p
     )
     assert pdf_document.status_code == 200
     assert pdf_document.headers["content-type"] == "application/pdf"
+    assert pdf_document.headers["content-disposition"] == 'attachment; filename="survey-plan.pdf"'
     assert pdf_document.content.startswith(b"%PDF")
     review = client.post(
         f"/api/v1/projects/{project_id}/professional-review",

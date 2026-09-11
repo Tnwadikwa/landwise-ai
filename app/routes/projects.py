@@ -153,9 +153,10 @@ def remove_project_document(
         raise HTTPException(status_code=404, detail="Document not found.")
     try:
         delete_private_document(document.stored_name)
-    except RuntimeError as error:
+    except (RuntimeError, OSError) as error:
         raise HTTPException(status_code=503, detail=str(error)) from error
-    delete_document(project_id, document_id)
+    if not delete_document(project_id, document_id):
+        raise HTTPException(status_code=404, detail="Document not found.")
     return RedirectResponse(f"/api/v1/projects/{project_id}/documents/view", status_code=303)
 
 

@@ -1,8 +1,11 @@
+import logging
 from urllib.parse import quote
 
 import httpx
 
 from app.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 def _storage_headers() -> dict[str, str]:
@@ -70,10 +73,11 @@ def delete_private_documents(storage_keys: list[str]) -> None:
     if not storage_keys:
         return
     url = f"{settings.supabase_url}/storage/v1/object/{quote(settings.supabase_document_bucket or '', safe='')}"
-    response = httpx.delete(url, headers=_storage_headers(), json={"prefixes": storage_keys}, timeout=15)
     try:
+        response = httpx.delete(url, headers=_storage_headers(), json={"prefixes": storage_keys}, timeout=15)
         response.raise_for_status()
-    except httpx.HTTPStatusError as error:
+    except httpx.HTTPError as error:
+        logger.warning("Supabase document deletion failed: %s", error)
         raise RuntimeError("The private documents could not be deleted.") from error
 
 

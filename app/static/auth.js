@@ -46,14 +46,18 @@ const showMessage = (text, isError = false) => {
   message.hidden = false;
 };
 
-document.querySelectorAll('[data-mode]').forEach((tab) => tab.addEventListener('click', () => {
-  mode = tab.dataset.mode;
-  document.querySelectorAll('[data-mode]').forEach((item) => item.classList.toggle('active', item === tab));
+const setMode = (nextMode) => {
+  mode = nextMode;
+  document.querySelectorAll('[data-mode]').forEach((item) => item.classList.toggle('active', item.dataset.mode === mode));
   submit.innerHTML = mode === 'login' ? 'Sign in <span>→</span>' : 'Create account <span>→</span>';
   form.querySelector('[name=password]').autocomplete = mode === 'login' ? 'current-password' : 'new-password';
   setRegisterFields(mode === 'register');
   message.hidden = true;
-}));
+};
+
+document.querySelectorAll('[data-mode]').forEach((tab) => tab.addEventListener('click', () => setMode(tab.dataset.mode)));
+
+if (new URLSearchParams(window.location.search).get('mode') === 'register') setMode('register');
 
 form.addEventListener('submit', async (event) => {
   event.preventDefault();

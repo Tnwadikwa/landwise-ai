@@ -32,6 +32,11 @@ if (sessionStorage.getItem('landwise-history-boundary') === 'true') {
 }
 
 window.addEventListener('pageshow', async (event) => {
+  if (sessionStorage.getItem('landwise-history-boundary') === 'true') {
+    sessionStorage.removeItem('landwise-history-boundary');
+    window.location.replace('/login.html');
+    return;
+  }
   if (!event.persisted && performance.getEntriesByType('navigation')[0]?.type !== 'back_forward') return;
   const response = await fetch('/api/v1/auth/me', { credentials: 'same-origin', cache: 'no-store' });
   if (!response.ok) window.location.replace('/login.html');

@@ -49,6 +49,7 @@ class PasswordResetRequest(BaseModel):
 class PasswordReset(BaseModel):
     token: str = Field(..., min_length=20)
     password: str = Field(..., min_length=8, max_length=128)
+    confirm_password: str | None = Field(default=None, min_length=8, max_length=128)
 
 
 class EmailVerification(BaseModel):
@@ -245,6 +246,8 @@ def verify_email(request: EmailVerification) -> dict[str, str]:
 @router.post("/reset-password")
 def reset_password_endpoint(request: PasswordReset) -> dict[str, str]:
     _validate_strong_password(request.password)
+    if request.confirm_password is not None and request.password != request.confirm_password:
+        raise HTTPException(status_code=422, detail="Passwords do not match.")
     if not reset_password(request.token, request.password):
         raise HTTPException(status_code=400, detail="This reset link is invalid or has expired.")
     return {"message": "Password reset successfully. You can now sign in."}

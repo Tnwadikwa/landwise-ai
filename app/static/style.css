@@ -104,6 +104,7 @@ h1, h2, h3, .brand, .metrics strong, .hero-card strong { font-family: 'Space Gro
 
 #comparison-results { display: grid; gap: 10px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .comparison-item { min-width: 0; }
+.auth-panel label.password-match { color: var(--green); }.auth-panel label.password-match input { border-color: var(--green); box-shadow: 0 0 0 2px #dcebd9; }.auth-panel label.password-mismatch { color: #a13e2d; }.auth-panel label.password-mismatch input { border-color: #a13e2d; box-shadow: 0 0 0 2px #f5d5ce; }
 .comparison-item strong, .comparison-item span, .comparison-item b, .comparison-item small { overflow-wrap: anywhere; }
 @media (max-width: 980px) { #comparison-results { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 720px) { #comparison-results { grid-template-columns: 1fr; } }

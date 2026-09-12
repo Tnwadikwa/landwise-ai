@@ -20,11 +20,6 @@ const navigateWithTransition = (url) => {
   setTimeout(() => { window.location.replace(url); }, 150);
 };
 
-window.addEventListener('pagehide', (event) => {
-  sessionStorage.setItem('landwise-history-boundary', 'true');
-  fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'same-origin', keepalive: true });
-});
-
 if (sessionStorage.getItem('landwise-history-boundary') === 'true') {
   sessionStorage.removeItem('landwise-history-boundary');
   window.location.replace('/login.html');

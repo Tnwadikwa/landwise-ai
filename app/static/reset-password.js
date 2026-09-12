@@ -24,7 +24,7 @@ form.addEventListener('submit', async (event) => {
     message.textContent = body.message;
     message.hidden = false;
     form.reset();
-    setTimeout(() => { window.location.href = '/login.html'; }, 1600);
+    setTimeout(() => { window.location.replace('/login.html'); }, 1600);
   } catch (error) { message.className = 'message error'; message.textContent = error.message; message.hidden = false; }
   finally { submit.disabled = false; }
 });

@@ -280,7 +280,10 @@ window.addEventListener('projects-updated', loadProjects);
   document.querySelector('#profile-gender').value = account.gender || 'Prefer not to say';
   document.querySelector('#profile-plan').textContent = account.plan === 'paid' ? 'Landwise AI Plus' : 'Landwise AI Free';
   loadProjects();
-  requestAnimationFrame(() => document.body.classList.remove('is-loading'));
+  requestAnimationFrame(() => {
+    document.documentElement.classList.remove('dashboard-preload');
+    document.body.classList.remove('is-loading');
+  });
   document.querySelector('#logout-button').addEventListener('click', async (event) => {
     const button = event.currentTarget;
     button.disabled = true;

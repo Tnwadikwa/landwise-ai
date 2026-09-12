@@ -21,7 +21,6 @@ const navigateWithTransition = (url) => {
 };
 
 window.addEventListener('pagehide', (event) => {
-  if (!event.persisted) return;
   sessionStorage.setItem('landwise-history-boundary', 'true');
   fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'same-origin', keepalive: true });
 });

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import PlainTextResponse, Response
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
@@ -23,6 +23,16 @@ app.include_router(auth_router)
 app.include_router(projects_router)
 app.include_router(premium_router)
 init_database()
+
+
+@app.middleware("http")
+async def prevent_private_dashboard_caching(request: Request, call_next):
+    response = await call_next(request)
+    if request.url.path == "/dashboard.html":
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
 
 
 @app.get("/health")

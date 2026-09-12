@@ -10,12 +10,14 @@ const navigateWithTransition = (url) => {
 window.addEventListener('pageshow', () => {
   const navigation = performance.getEntriesByType('navigation')[0];
   if (navigation?.type === 'back_forward') {
+    sessionStorage.setItem('landwise-history-boundary', 'true');
     fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'same-origin', keepalive: true });
   }
 });
 
 const enterWorkspace = () => {
   document.body.classList.add('is-transitioning');
+  sessionStorage.removeItem('landwise-history-boundary');
   setTimeout(() => { window.location.href = '/dashboard.html'; }, 150);
 };
 

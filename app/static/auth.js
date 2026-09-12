@@ -7,6 +7,18 @@ const navigateWithTransition = (url) => {
   setTimeout(() => { window.location.replace(url); }, 150);
 };
 
+window.addEventListener('pageshow', () => {
+  const navigation = performance.getEntriesByType('navigation')[0];
+  if (navigation?.type === 'back_forward') {
+    fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'same-origin', keepalive: true });
+  }
+});
+
+const enterWorkspace = () => {
+  document.body.classList.add('is-transitioning');
+  setTimeout(() => { window.location.href = '/dashboard.html'; }, 150);
+};
+
 
 const form = document.querySelector('#auth-form');
 form.noValidate = true;
@@ -129,11 +141,11 @@ form.addEventListener('submit', async (event) => {
         window.location.href = `/verify-email.html?email=${encodeURIComponent(payload.email)}`;
       } else {
         sessionStorage.removeItem('landwise-dashboard-exited');
-        navigateWithTransition('/dashboard.html');
+        enterWorkspace();
       }
     } else {
       sessionStorage.removeItem('landwise-dashboard-exited');
-      navigateWithTransition('/dashboard.html');
+      enterWorkspace();
     }
   } catch (error) {
     showMessage(error.message, true);

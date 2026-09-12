@@ -34,6 +34,7 @@ class UserSession(Base):
     token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    last_activity_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class PasswordResetToken(Base):
@@ -88,6 +89,10 @@ def init_database() -> None:
         if name not in columns:
             with engine.begin() as database:
                 database.execute(text(f"ALTER TABLE users ADD COLUMN {name} {definition}"))
+    session_columns = {column["name"] for column in inspect(engine).get_columns("sessions")}
+    if "last_activity_at" not in session_columns:
+        with engine.begin() as database:
+            database.execute(text("ALTER TABLE sessions ADD COLUMN last_activity_at TIMESTAMP"))
 
 
 def database_diagnostics() -> dict[str, str]:
@@ -145,6 +150,7 @@ def create_session(email: str, password: str) -> str | None:
                 token_hash=hashlib.sha256(token.encode()).hexdigest(),
                 user_id=user.id,
                 expires_at=datetime.now(timezone.utc) + timedelta(days=7),
+                last_activity_at=datetime.now(timezone.utc),
             )
         )
         database.commit()
@@ -167,8 +173,15 @@ def get_user(token: str | None) -> dict[str, str] | None:
     token_hash = hashlib.sha256(token.encode()).hexdigest()
     with SessionLocal() as database:
         session = database.get(UserSession, token_hash)
-        if not session or _as_utc(session.expires_at) <= datetime.now(timezone.utc):
+        now = datetime.now(timezone.utc)
+        if not session or _as_utc(session.expires_at) <= now:
             return None
+        if not session.last_activity_at or _as_utc(session.last_activity_at) + timedelta(hours=1) <= now:
+            database.delete(session)
+            database.commit()
+            return None
+        session.last_activity_at = now
+        database.commit()
         user = database.get(User, session.user_id)
         if not user:
             return None

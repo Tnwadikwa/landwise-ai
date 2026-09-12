@@ -15,26 +15,13 @@ const accountMenuButton = document.querySelector('#account-menu-button');
 const accountMenuOptions = document.querySelector('#account-menu-options');
 const dashboardMain = document.querySelector('.dashboard-shell');
 
-document.body.classList.remove('is-loading');
-
 const navigateWithTransition = (url) => {
   document.body.classList.add('is-transitioning');
   setTimeout(() => { window.location.replace(url); }, 150);
 };
 
-const navigationEntry = performance.getEntriesByType('navigation')[0];
-window.addEventListener('pagehide', () => {
-  sessionStorage.setItem('landwise-dashboard-exited', 'true');
-});
-
 window.addEventListener('pageshow', async (event) => {
-  const returnedByHistory = event.persisted || navigationEntry?.type === 'back_forward';
-  if (returnedByHistory && sessionStorage.getItem('landwise-dashboard-exited') === 'true') {
-    sessionStorage.removeItem('landwise-dashboard-exited');
-    window.location.replace('/login.html');
-    return;
-  }
-  if (!event.persisted && navigationEntry?.type !== 'back_forward') return;
+  if (!event.persisted && performance.getEntriesByType('navigation')[0]?.type !== 'back_forward') return;
   const response = await fetch('/api/v1/auth/me', { credentials: 'same-origin', cache: 'no-store' });
   if (!response.ok) window.location.replace('/login.html');
 });
@@ -125,7 +112,7 @@ document.querySelectorAll('[data-account-section]').forEach((button) => {
     const sectionId = button.dataset.accountSection;
     accountMenuOptions.hidden = true;
     accountMenuButton.setAttribute('aria-expanded', 'false');
-    window.history.replaceState(null, '', `#${sectionId}`);
+    window.history.pushState(null, '', `#${sectionId}`);
     showWorkspaceSection(sectionId);
   });
 });
@@ -142,7 +129,7 @@ workspaceLinks.forEach((link) => {
     const targetId = link.getAttribute('href').slice(1);
     if (!document.getElementById(targetId)) return;
     event.preventDefault();
-    window.history.replaceState(null, '', `#${targetId}`);
+    window.history.pushState(null, '', `#${targetId}`);
     showWorkspaceSection(targetId);
   });
 });
@@ -282,6 +269,7 @@ window.addEventListener('projects-updated', loadProjects);
   document.querySelector('#profile-gender').value = account.gender || 'Prefer not to say';
   document.querySelector('#profile-plan').textContent = account.plan === 'paid' ? 'Landwise AI Plus' : 'Landwise AI Free';
   loadProjects();
+  requestAnimationFrame(() => document.body.classList.remove('is-loading'));
   document.querySelector('#logout-button').addEventListener('click', async (event) => {
     const button = event.currentTarget;
     button.disabled = true;
